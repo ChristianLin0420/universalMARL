@@ -1,6 +1,6 @@
 # --- Defaults ---
 
-# --- pymarl options ---
+# --- universalMARL options ---
 runner: "episode" # Runs 1 env for an episode
 mac: "basic_mac" # Basic controller
 env: "sc2" # Environment name

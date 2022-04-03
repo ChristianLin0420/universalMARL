@@ -15,6 +15,6 @@ fi
 NV_GPU="$GPU" ${cmd} run \
     --name $name \
     --user $(id -u):$(id -g) \
-    -v `pwd`:/pymarl \
-    -t pymarl:1.0 \
+    -v `pwd`:/universalMARL \
+    -t universalMARL:1.0 \
     ${@:2}
