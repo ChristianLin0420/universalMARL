@@ -8,3 +8,6 @@ REGISTRY['updet'] = UPDeT
 
 from .transformer_agg_agent import TransformerAggregationAgent
 REGISTRY['transformer_aggregation'] = TransformerAggregationAgent
+
+from .axial_transformer_agent import AxialTransformerAgent
+REGISTRY['axial_transformer'] = AxialTransformerAgent
