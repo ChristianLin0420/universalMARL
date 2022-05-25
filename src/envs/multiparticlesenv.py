@@ -1,10 +1,12 @@
 
+from os import stat
 import numpy as np
 import gym
 
 from gym import spaces
 from gym.spaces import prng
 from .multiagentenv import MultiAgentEnv
+from .multiparticleenv.multi_discrete import MultiDiscrete
 
 
 class MultiParticleEnv(MultiAgentEnv):
@@ -18,7 +20,8 @@ class MultiParticleEnv(MultiAgentEnv):
         observation_callback = None, 
         info_callback = None,
         done_callback = None, 
-        shared_viewer = True):
+        shared_viewer = True, 
+        seed = None):
 
         self.world = world
         self.agents = self.world.policy_agents
@@ -39,6 +42,9 @@ class MultiParticleEnv(MultiAgentEnv):
         # if true, every agent has the same reward
         self.shared_reward = world.collaborative if hasattr(world, 'collaborative') else False
         self.time = 0
+
+        self._seed = seed
+        self.episode_limit = 10
 
         # configure spaces
         self.action_space = []
@@ -83,34 +89,102 @@ class MultiParticleEnv(MultiAgentEnv):
         self._reset_render()
 
     def step(self, actions):
-        pass
+        obs_n = []
+        reward_n = []
+        done_n = []
+        info_n = {'n': []}
+        self.agents = self.world.policy_agents
+        # set action for each agent
+        for i, agent in enumerate(self.agents):
+            self._set_action(actions[i], agent, self.action_space[i])
+        # advance world state
+        self.world.step()
+        # record observation for each agent
+        for agent in self.agents:
+            obs_n.append(self.get_obs_agent(agent))
+            reward_n.append(self._get_reward(agent))
+            done_n.append(self._get_done(agent))
+            info_n['n'].append(self._get_info(agent))
+
+        # all agents get total reward in cooperative case
+        reward = np.sum(reward_n)
+        if self.shared_reward:
+            reward_n = [reward] * self.n
+
+        return reward, done_n, info_n
+
+    # get dones for a particular agent
+    # unused right now -- agents are allowed to go beyond the viewing screen
+    def _get_done(self, agent):
+        if self.done_callback is None:
+            return False
+        return self.done_callback(agent, self.world)
+
+    # get reward for a particular agent
+    def _get_reward(self, agent):
+        if self.reward_callback is None:
+            return 0.0
+        return self.reward_callback(agent, self.world)
+
+    # get info used for benchmarking
+    def _get_info(self, agent):
+        if self.info_callback is None:
+            return {}
+        return self.info_callback(agent, self.world)
 
     def get_obs_agent(self, agent_id):
         """ Returns observation for agent_id """
-        raise NotImplementedError
+        if self.observation_callback is None:
+            return np.zeros(0)
+        return self.observation_callback(agent_id, self.world)
 
     def get_obs_size(self):
         """ Returns the shape of the observation """
-        raise NotImplementedError
+        agents_obs_size = len(self.world.agents) * (self.world.dim_p * 2 + self.world.dim_c)
+        landmark_obs_size = len(self.world.landmarks) * (self.world.dim_p * 2)
+        return agents_obs_size + landmark_obs_size
 
     def get_state(self):
-        raise NotImplementedError
+        """Returns the global state.
+        NOTE: This functon should not be used during decentralised execution.
+        """
+
+        ally_state = []
+        enemy_state = []
+
+        for i, agent in enumerate(self.world.agents):
+            if agent.adversary:
+                enemy_state.append(self.observation_callback(i, self.world))
+            else:
+                ally_state.append(self.observation_callback(i, self.world))
+
+        ally_state = np.asarray(ally_state)
+        enemy_state = np.asarray(enemy_state)
+
+        state = np.append(ally_state.flatten(), enemy_state.flatten())
+        state = state.astype(dtype = np.float32)
+
+        return state
 
     def get_state_size(self):
-        """ Returns the shape of the state"""
-        raise NotImplementedError
+        size = 0
+
+        for i in len(self.world.agents):
+            size += len(self.observation_callback(i, self.world))
+
+        return size
 
     def get_avail_actions(self):
-        raise NotImplementedError
+        """ Do Nothing """
 
     def get_avail_agent_actions(self, agent_id):
         """ Returns the available actions for agent_id """
-        raise NotImplementedError
+        """ Do Nothing """
 
     def get_total_actions(self):
         """ Returns the total number of actions an agent could ever take """
         # TODO: This is only suitable for a discrete 1 dimensional action space for each agent
-        raise NotImplementedError
+        return self.action_space[0]
 
     def reset(self):
         # reset world
@@ -127,23 +201,89 @@ class MultiParticleEnv(MultiAgentEnv):
 
         return obs_n
 
-    def render(self):
-        raise NotImplementedError
+    def render(self, mode='human'):
+        if mode == 'human':
+            alphabet = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'
+            message = ''
+            for agent in self.world.agents:
+                comm = []
+                for other in self.world.agents:
+                    if other is agent: continue
+                    if np.all(other.state.c == 0):
+                        word = '_'
+                    else:
+                        word = alphabet[np.argmax(other.state.c)]
+                    message += (other.name + ' to ' + agent.name + ': ' + word + '   ')
+            print(message)
+
+        for i in range(len(self.viewers)):
+            # create viewers (if necessary)
+            if self.viewers[i] is None:
+                # import rendering only if we need it (and don't import for headless machines)
+                #from gym.envs.classic_control import rendering
+                from .multiparticleenv import rendering
+                self.viewers[i] = rendering.Viewer(700,700)
+
+        # create rendering geometry
+        if self.render_geoms is None:
+            # import rendering only if we need it (and don't import for headless machines)
+            #from gym.envs.classic_control import rendering
+            from .multiparticleenv import rendering
+            self.render_geoms = []
+            self.render_geoms_xform = []
+
+            for entity in self.world.entities:
+                geom = rendering.make_circle(entity.size)
+                xform = rendering.Transform()
+                if 'agent' in entity.name:
+                    geom.set_color(*entity.color, alpha=0.5)
+                else:
+                    geom.set_color(*entity.color)
+                geom.add_attr(xform)
+                self.render_geoms.append(geom)
+                self.render_geoms_xform.append(xform)
+
+            # add geoms to viewer
+            for viewer in self.viewers:
+                viewer.geoms = []
+                for geom in self.render_geoms:
+                    viewer.add_geom(geom)
+
+        results = []
+
+        for i in range(len(self.viewers)):
+            from .multiparticleenv import rendering
+            # update bounds to center around agent
+            cam_range = 1
+            if self.shared_viewer:
+                pos = np.zeros(self.world.dim_p)
+            else:
+                pos = self.agents[i].state.p_pos
+            self.viewers[i].set_bounds(pos[0]-cam_range,pos[0]+cam_range,pos[1]-cam_range,pos[1]+cam_range)
+            # update geometry positions
+            for e, entity in enumerate(self.world.entities):
+                self.render_geoms_xform[e].set_translation(*entity.state.p_pos)
+            # render to display or array
+            results.append(self.viewers[i].render(return_rgb_array = mode=='rgb_array'))
+
+        return results
 
     def close(self):
-        raise NotImplementedError
+        self.render_geoms = None
+        self.render_geoms_xform = None
+        self.viewers = None
 
     def seed(self):
-        raise NotImplementedError
+        return self._seed
 
     def save_replay(self):
-        raise NotImplementedError
+        ''' Do nothing '''
 
     def get_env_info(self):
         env_info = {"state_shape": self.get_state_size(),
                     "obs_shape": self.get_obs_size(),
                     "n_actions": self.get_total_actions(),
-                    "n_agents": self.n_agents,
+                    "n_agents": self.n,
                     "episode_limit": self.episode_limit}
         return env_info
 
