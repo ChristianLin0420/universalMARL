@@ -34,14 +34,23 @@ def my_main(_run, _config, _log):
     # run the framework
     run(_run, config, _log)
 
-
-def _get_config(params, arg_name, subfolder):
+def _get_config_name(params, arg_name, delete = True):
     config_name = None
+
     for _i, _v in enumerate(params):
         if _v.split("=")[0] == arg_name:
             config_name = _v.split("=")[1]
-            del params[_i]
-            break
+
+            if delete:
+                del params[_i]
+
+            break;
+
+    return config_name
+
+def _get_config(params, arg_name, subfolder):
+
+    config_name = _get_config_name(params, arg_name)
 
     if config_name is not None:
         with open(os.path.join(os.path.dirname(__file__), "config", subfolder, "{}.yaml".format(config_name)), "r") as f:
@@ -74,10 +83,16 @@ def config_copy(config):
 if __name__ == '__main__':
     params = deepcopy(sys.argv)
 
+    default_config_name = _get_config_name(params, "--env-config", False)
+
+    if default_config_name is not None:
+        default_config_name = "default_{}.yaml".format(default_config_name)
+    else:
+        default_config_name = "default_sc2.yaml"
+
     # Get the defaults from default.yaml
-    with open(os.path.join(os.path.dirname(__file__), "config", "default.yaml"), "r") as f:
+    with open(os.path.join(os.path.dirname(__file__), "config", default_config_name), "r") as f:
         try:
-            # config_dict = yaml.load(f)
             config_dict = yaml.safe_load(f)
         except yaml.YAMLError as exc:
             assert False, "default.yaml error: {}".format(exc)

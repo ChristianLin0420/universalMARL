@@ -13,7 +13,10 @@ class UPDeT(nn.Module):
 
     def init_hidden(self):
         # make hidden states on same device as model
-        return torch.zeros(1, self.args.emb).cuda()
+        if self.args.use_cuda:
+            return torch.zeros(1, self.args.emb).cuda()
+        else:
+            return torch.zeros(1, self.args.emb)
 
     def forward(self, inputs, hidden_state, task_enemy_num, task_ally_num):
         outputs, _ = self.transformer.forward(inputs, hidden_state, None)
