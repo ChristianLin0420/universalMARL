@@ -132,6 +132,10 @@ class MultiParticleEnv(MultiAgentEnv):
             return {}
         return self.info_callback(agent, self.world)
 
+    def get_obs(self):
+        agents_obs = [self.get_obs_agent(i) for i in range(self.n)]
+        return agents_obs
+
     def get_obs_agent(self, agent_id):
         """ Returns observation for agent_id """
         if self.observation_callback is None:
@@ -175,11 +179,52 @@ class MultiParticleEnv(MultiAgentEnv):
         return size
 
     def get_avail_actions(self):
-        """ Do Nothing """
+        avail_actions = []
+        for agent_id in range(self.agents):
+            avail_agent = self.get_avail_agent_actions(agent_id)
+            avail_actions.append(avail_agent)
+        return avail_actions
+
+    def check_bounds(self, x, y):
+        """Whether a point is within the map bounds."""
+        return 0 <= x < self.viewers[0].width and 0 <= y < self.viewers[0].height
+
+    def can_move(self, agent, direction):
+        m = 1.0
+
+        if direction == 1:
+            x, y = int(agent.p_pos[0]), int(agent.p_pos[1] - m)
+        elif direction == 2:
+            x, y = int(agent.p_pos[0] + m), int(agent.p_pos[1])
+        elif direction == 3:
+            x, y = int(agent.p_pos[0]), int(agent.p_pos[1] + m)
+        else:
+            x, y = int(agent.p_pos[0] - m), int(agent.p_pos[1])
+
+        if self.check_bounds(x, y):
+            return True
+
+        return False
 
     def get_avail_agent_actions(self, agent_id):
         """ Returns the available actions for agent_id """
-        """ Do Nothing """
+        
+        agent = self.agents[agent_id]
+
+        avail_actions = [0] * len(self.observation_callback(agent_id, self.world))
+        avail_actions[0] = 1
+
+        # see if we can move
+        if self.can_move(agent, 1):
+            avail_actions[2] = 1
+        if self.can_move(agent, 2):
+            avail_actions[3] = 1
+        if self.can_move(agent, 3):
+            avail_actions[4] = 1
+        if self.can_move(agent, 4):
+            avail_actions[5] = 1
+
+        return avail_actions
 
     def get_total_actions(self):
         """ Returns the total number of actions an agent could ever take """
