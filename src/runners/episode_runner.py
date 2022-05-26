@@ -69,6 +69,9 @@ class EpisodeRunner:
             reward, terminated, env_info = self.env.step(actions[0])
             episode_return += reward
 
+            if self.args.env != "sc2" and self.args.env_args["render"]: 
+                self.env.render()
+
             post_transition_data = {
                 "actions": actions,
                 "reward": [(reward,)],

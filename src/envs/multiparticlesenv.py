@@ -23,6 +23,9 @@ class MultiParticleEnv(MultiAgentEnv):
         shared_viewer = True, 
         seed = None):
 
+        self.viewer_width = 400.0
+        self.viewer_height = 400.0
+
         self.world = world
         self.agents = self.world.policy_agents
         # set required vectorized gym env property
@@ -36,7 +39,7 @@ class MultiParticleEnv(MultiAgentEnv):
         # environment parameters
         self.discrete_action_space = True
         # if true, action is a number 0...N, otherwise action is a one-hot N-dimensional vector
-        self.discrete_action_input = False
+        self.discrete_action_input = True
         # if true, even the action is continuous, action will be performed discretely
         self.force_discrete_action = world.discrete_action if hasattr(world, 'discrete_action') else False
         # if true, every agent has the same reward
@@ -93,7 +96,7 @@ class MultiParticleEnv(MultiAgentEnv):
     def step(self, actions):
         obs_n = []
         reward_n = []
-        info_n = {'n': []}
+        info_n = {}
         self.agents = self.world.policy_agents
         # set action for each agent
         for i, agent in enumerate(self.agents):
@@ -104,10 +107,10 @@ class MultiParticleEnv(MultiAgentEnv):
         self._episode_steps += 1
 
         # record observation for each agent
-        for agent in self.agents:
-            obs_n.append(self.get_obs_agent(agent))
+        for i, agent in enumerate(self.agents):
+            obs_n.append(self.get_obs_agent(i))
             reward_n.append(self._get_reward(agent))
-            info_n['n'].append(self._get_info(agent))
+            # info_n['n'].append(self._get_info(agent))
 
         done = self._get_done()
 
@@ -122,12 +125,63 @@ class MultiParticleEnv(MultiAgentEnv):
 
         return reward, done, info_n
 
+    # set env action for a particular agent
+    def _set_action(self, action, agent, action_space):
+        agent.action.u = np.zeros(self.world.dim_p)
+        agent.action.c = np.zeros(self.world.dim_c)
+        # process action
+        if isinstance(action_space, MultiDiscrete):
+            act = []
+            size = action_space.high - action_space.low + 1
+            index = 0
+            for s in size:
+                act.append(action[index:(index+s)])
+                index += s
+            action = act
+        else:
+            action = [action]
+
+        if agent.movable:
+            # physical action
+            if self.discrete_action_input:
+                agent.action.u = np.zeros(self.world.dim_p)
+                # process discrete action
+                if action[0] == 1: agent.action.u[0] = -1.0
+                if action[0] == 2: agent.action.u[0] = +1.0
+                if action[0] == 3: agent.action.u[1] = -1.0
+                if action[0] == 4: agent.action.u[1] = +1.0
+            else:
+                if self.force_discrete_action:
+                    d = np.argmax(action[0])
+                    action[0][:] = 0.0
+                    action[0][d] = 1.0
+                if self.discrete_action_space:
+                    agent.action.u[0] += action[0][1] - action[0][2]
+                    agent.action.u[1] += action[0][3] - action[0][4]
+                else:
+                    agent.action.u = action[0]
+            sensitivity = 5.0
+            if agent.accel is not None:
+                sensitivity = agent.accel
+            agent.action.u *= sensitivity
+            action = action[1:]
+        if not agent.silent:
+            # communication action
+            if self.discrete_action_input:
+                agent.action.c = np.zeros(self.world.dim_c)
+                agent.action.c[action[0]] = 1.0
+            else:
+                agent.action.c = action[0]
+            action = action[1:]
+        # make sure we used all elements of action
+        assert len(action) == 0
+
     # get dones for a particular agent
     # unused right now -- agents are allowed to go beyond the viewing screen
-    def _get_done(self, agent):
+    def _get_done(self):
         if self.done_callback is None:
             return False
-        return self.done_callback(agent, self.world)
+        return self.done_callback(self.world)
 
     # get reward for a particular agent
     def _get_reward(self, agent):
@@ -149,13 +203,12 @@ class MultiParticleEnv(MultiAgentEnv):
         """ Returns observation for agent_id """
         if self.observation_callback is None:
             return np.zeros(0)
-        return self.observation_callback(agent_id, self.world)
+        return self.observation_callback(self.world.agents[agent_id], self.world)
 
     def get_obs_size(self):
         """ Returns the shape of the observation """
         agents_obs_size = len(self.world.agents) * (self.world.dim_p * 2 + self.world.dim_c)
-        landmark_obs_size = len(self.world.landmarks) * (self.world.dim_p * 2)
-        return agents_obs_size + landmark_obs_size
+        return agents_obs_size
 
     def get_state(self):
         """Returns the global state.
@@ -165,11 +218,11 @@ class MultiParticleEnv(MultiAgentEnv):
         ally_state = []
         enemy_state = []
 
-        for i, agent in enumerate(self.world.agents):
+        for agent in self.world.agents:
             if agent.adversary:
-                enemy_state.append(self.observation_callback(i, self.world))
+                enemy_state.append(self.observation_callback(agent, self.world))
             else:
-                ally_state.append(self.observation_callback(i, self.world))
+                ally_state.append(self.observation_callback(agent, self.world))
 
         ally_state = np.asarray(ally_state)
         enemy_state = np.asarray(enemy_state)
@@ -182,33 +235,33 @@ class MultiParticleEnv(MultiAgentEnv):
     def get_state_size(self):
         size = 0
 
-        for i in len(self.world.agents):
-            size += len(self.observation_callback(i, self.world))
+        for i in range(len(self.world.agents)):
+            size += len(self.observation_callback(self.world.agents[i], self.world))
 
         return size
 
     def get_avail_actions(self):
         avail_actions = []
-        for agent_id in range(self.agents):
+        for agent_id in range(len(self.agents)):
             avail_agent = self.get_avail_agent_actions(agent_id)
             avail_actions.append(avail_agent)
         return avail_actions
 
     def check_bounds(self, x, y):
         """Whether a point is within the map bounds."""
-        return 0 <= x < self.viewers[0].width and 0 <= y < self.viewers[0].height
+        return 0 <= x < self.viewer_width and 0 <= y < self.viewer_height
 
     def can_move(self, agent, direction):
         m = 1.0
 
         if direction == 1:
-            x, y = int(agent.p_pos[0]), int(agent.p_pos[1] - m)
+            x, y = int(agent.state.p_pos[0]), int(agent.state.p_pos[1] - m)
         elif direction == 2:
-            x, y = int(agent.p_pos[0] + m), int(agent.p_pos[1])
+            x, y = int(agent.state.p_pos[0] + m), int(agent.state.p_pos[1])
         elif direction == 3:
-            x, y = int(agent.p_pos[0]), int(agent.p_pos[1] + m)
+            x, y = int(agent.state.p_pos[0]), int(agent.state.p_pos[1] + m)
         else:
-            x, y = int(agent.p_pos[0] - m), int(agent.p_pos[1])
+            x, y = int(agent.state.p_pos[0] - m), int(agent.state.p_pos[1])
 
         if self.check_bounds(x, y):
             return True
@@ -220,25 +273,25 @@ class MultiParticleEnv(MultiAgentEnv):
         
         agent = self.agents[agent_id]
 
-        avail_actions = [0] * len(self.observation_callback(agent_id, self.world))
+        avail_actions = [0] * 5
         avail_actions[0] = 1
 
         # see if we can move
         if self.can_move(agent, 1):
-            avail_actions[2] = 1
+            avail_actions[1] = 1
         if self.can_move(agent, 2):
-            avail_actions[3] = 1
+            avail_actions[2] = 1
         if self.can_move(agent, 3):
-            avail_actions[4] = 1
+            avail_actions[3] = 1
         if self.can_move(agent, 4):
-            avail_actions[5] = 1
+            avail_actions[4] = 1
 
         return avail_actions
 
     def get_total_actions(self):
         """ Returns the total number of actions an agent could ever take """
         # TODO: This is only suitable for a discrete 1 dimensional action space for each agent
-        return self.action_space[0]
+        return 5
 
     def reset(self):
         # reset world
@@ -250,10 +303,15 @@ class MultiParticleEnv(MultiAgentEnv):
         # record observations for each agent
         obs_n = []
         self.agents = self.world.policy_agents
-        for agent in self.agents:
-            obs_n.append(self._get_obs(agent))
+        for id in range(len(self.agents)):
+            obs_n.append(self.get_obs_agent(id))
 
         return obs_n
+
+    # reset rendering assets
+    def _reset_render(self):
+        self.render_geoms = None
+        self.render_geoms_xform = None
 
     def render(self, mode='human'):
         if mode == 'human':
@@ -268,7 +326,7 @@ class MultiParticleEnv(MultiAgentEnv):
                     else:
                         word = alphabet[np.argmax(other.state.c)]
                     message += (other.name + ' to ' + agent.name + ': ' + word + '   ')
-            print(message)
+            # print(message)
 
         for i in range(len(self.viewers)):
             # create viewers (if necessary)
@@ -276,7 +334,7 @@ class MultiParticleEnv(MultiAgentEnv):
                 # import rendering only if we need it (and don't import for headless machines)
                 #from gym.envs.classic_control import rendering
                 from .multiparticleenv import rendering
-                self.viewers[i] = rendering.Viewer(700,700)
+                self.viewers[i] = rendering.Viewer(self.viewer_width, self.viewer_height)
 
         # create rendering geometry
         if self.render_geoms is None:

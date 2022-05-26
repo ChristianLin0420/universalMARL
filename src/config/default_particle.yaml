@@ -19,7 +19,7 @@ buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
 # --- Logging options ---
 use_tensorboard: True # Log results to tensorboard
 save_model: True # Save the models to disk
-save_model_interval: 2000000 # Save models after this many timesteps
+save_model_interval: 1000000 # Save models after this many timesteps
 checkpoint_path: "" # Load a checkpoint from this path
 evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
 load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
@@ -47,10 +47,8 @@ token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be dif
 emb: 32 # embedding dimension of transformer
 heads: 3 # head number of transformer
 depth: 2 # block number of transformer
-n_agents: 8    # number of ally
-n_landmarks: 8 # number of landmark
-n_adverary: 0
 
 # --- Experiment running params ---
 repeat_id: 1
 label: "default_label"
+

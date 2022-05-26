@@ -1,7 +1,10 @@
 env: particle
 
 env_args:
-  senario: "simple_spread"
+  scenario: "simple_spread"
+  n_agents: 3                 # number of ally
+  n_landmarks: 3              # number of landmark
+  n_adverary: 0
   continuing_episode: False
   difficulty: "7"
   game_version: null
@@ -31,6 +34,9 @@ env_args:
   heuristic_ai: False
   heuristic_rest: False
   debug: False
+  # --- Render parameters ---
+  render: False
+  share_view: False
 
 test_greedy: True
 test_nepisode: 32
@@ -38,4 +44,4 @@ test_interval: 10000
 log_interval: 10000
 runner_log_interval: 10000
 learner_log_interval: 10000
-t_max: 2050000
+t_max: 1050000

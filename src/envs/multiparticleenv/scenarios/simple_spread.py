@@ -1,12 +1,14 @@
+from distutils.log import error
 import numpy as np
-from multiparticleenv.core import World, Agent, Landmark
-from multiparticleenv.scenario import BaseScenario
+from envs.multiparticleenv.core import World, Agent, Landmark
+from envs.multiparticleenv.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
     def make_world(self, n_agents = 3, n_landmarks = 3):
 
-        assert n_landmarks < n_agents
+        if n_landmarks < n_agents:
+            error("# of landmarks should equal to or greater # of agents!!!")
 
         world = World()
         # set any world properties first
@@ -21,6 +23,7 @@ class Scenario(BaseScenario):
             agent.collide = True
             agent.silent = True
             agent.size = 0.15
+            agent.adversary = False
         # add landmarks
         world.landmarks = [Landmark() for i in range(self.num_landmarks)]
         for i, landmark in enumerate(world.landmarks):
