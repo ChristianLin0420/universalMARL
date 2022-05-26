@@ -80,7 +80,7 @@ class Agent(Entity):
 
 # multi-agent world
 class World(object):
-    def __init__(self):
+    def __init__(self, position_radius = 1.0):
         # list of agents and entities (can change at execution-time!)
         self.agents = []
         self.landmarks = []
@@ -97,6 +97,9 @@ class World(object):
         # contact response parameters
         self.contact_force = 1e+2
         self.contact_margin = 1e-3
+
+        # radius of the entities
+        self.position_radius = position_radius
 
     # return all entities in the world
     @property

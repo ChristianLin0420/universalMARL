@@ -5,12 +5,12 @@ from envs.multiparticleenv.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
-    def make_world(self, n_agents = 3, n_landmarks = 3):
+    def make_world(self, n_agents = 3, n_landmarks = 3, position_radius = 1.0):
 
         if n_landmarks < n_agents:
             error("# of landmarks should equal to or greater # of agents!!!")
 
-        world = World()
+        world = World(position_radius)
         # set any world properties first
         world.dim_c = 2
         self.num_agents = n_agents
@@ -43,11 +43,11 @@ class Scenario(BaseScenario):
             landmark.color = np.array([0.25, 0.25, 0.25])
         # set random initial states
         for agent in world.agents:
-            agent.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
+            agent.state.p_pos = np.random.uniform(-world.position_radius, +world.position_radius, world.dim_p)
             agent.state.p_vel = np.zeros(world.dim_p)
             agent.state.c = np.zeros(world.dim_c)
         for i, landmark in enumerate(world.landmarks):
-            landmark.state.p_pos = np.random.uniform(-1, +1, world.dim_p)
+            landmark.state.p_pos = np.random.uniform(-world.position_radius, +world.position_radius, world.dim_p)
             landmark.state.p_vel = np.zeros(world.dim_p)
 
     def benchmark_data(self, agent, world):
