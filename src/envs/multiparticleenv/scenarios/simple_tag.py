@@ -1,6 +1,6 @@
 import numpy as np
-from multiagent.core import World, Agent, Landmark
-from multiagent.scenario import BaseScenario
+from multiparticleenv.core import World, Agent, Landmark
+from multiparticleenv.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
@@ -127,6 +127,19 @@ class Scenario(BaseScenario):
                     if self.is_collision(ag, adv):
                         rew += 10
         return rew
+
+    def game_over(self, world):
+        agents_dead_count = 0
+        agents = self.good_agents(world)
+        adversaries = self.adversaries(world)
+
+        for agent in agents:
+            for adv in adversaries:
+                if self.is_collision(agent, adv):
+                    agents_dead_count += 1
+                    break
+
+        return agents_dead_count == len(agents)
 
     def observation(self, agent, world):
         # get positions of all entities in this agent's reference frame

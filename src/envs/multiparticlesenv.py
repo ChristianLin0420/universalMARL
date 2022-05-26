@@ -44,7 +44,9 @@ class MultiParticleEnv(MultiAgentEnv):
         self.time = 0
 
         self._seed = seed
-        self.episode_limit = 10
+        self.episode_limit = 30
+        self._episode_count = 0
+        self._episode_steps = 0
 
         # configure spaces
         self.action_space = []
@@ -91,27 +93,34 @@ class MultiParticleEnv(MultiAgentEnv):
     def step(self, actions):
         obs_n = []
         reward_n = []
-        done_n = []
         info_n = {'n': []}
         self.agents = self.world.policy_agents
         # set action for each agent
         for i, agent in enumerate(self.agents):
             self._set_action(actions[i], agent, self.action_space[i])
+
         # advance world state
         self.world.step()
+        self._episode_steps += 1
+
         # record observation for each agent
         for agent in self.agents:
             obs_n.append(self.get_obs_agent(agent))
             reward_n.append(self._get_reward(agent))
-            done_n.append(self._get_done(agent))
             info_n['n'].append(self._get_info(agent))
+
+        done = self._get_done()
 
         # all agents get total reward in cooperative case
         reward = np.sum(reward_n)
-        if self.shared_reward:
-            reward_n = [reward] * self.n
 
-        return reward, done_n, info_n
+        if self._episode_steps >= self.episode_limit:
+            done = True
+
+        if done:
+            self._episode_count += 1
+
+        return reward, done, info_n
 
     # get dones for a particular agent
     # unused right now -- agents are allowed to go beyond the viewing screen

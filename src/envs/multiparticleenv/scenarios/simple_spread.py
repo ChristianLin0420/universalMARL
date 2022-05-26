@@ -5,6 +5,9 @@ from multiparticleenv.scenario import BaseScenario
 
 class Scenario(BaseScenario):
     def make_world(self, n_agents = 3, n_landmarks = 3):
+
+        assert n_landmarks < n_agents
+
         world = World()
         # set any world properties first
         world.dim_c = 2
@@ -80,6 +83,20 @@ class Scenario(BaseScenario):
                 if self.is_collision(a, agent):
                     rew -= 1
         return rew
+
+    def game_over(self, world):
+        rew = 0
+        occupied_landmarks = 0
+        min_dists = 0
+
+        for l in world.landmarks:
+            dists = [np.sqrt(np.sum(np.square(a.state.p_pos - l.state.p_pos))) for a in world.agents]
+            min_dists += min(dists)
+            rew -= min(dists)
+            if min(dists) < 0.1:
+                occupied_landmarks += 1
+        
+        return occupied_landmarks == len(world.agents)
 
     def observation(self, agent, world):
         # get positions of all entities in this agent's reference frame

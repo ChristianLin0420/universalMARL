@@ -1,6 +1,7 @@
 env: particle
 
 env_args:
+  senario: "simple_spread"
   continuing_episode: False
   difficulty: "7"
   game_version: null
