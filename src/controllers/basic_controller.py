@@ -56,10 +56,15 @@ class BasicMAC:
 
         # transformer based agent
         else:
-            agent_inputs = self._build_inputs_transformer(ep_batch, t)
-            agent_outs, self.hidden_states = self.agent(agent_inputs,
+            agent_inputs = self._build_inputs_transformer(ep_batch, t, self.args.env)
+
+            if self.args.env == "sc2":
+                agent_outs, self.hidden_states = self.agent(agent_inputs,
                                                            self.hidden_states.reshape(-1, 1, self.args.emb),
                                                            self.args.enemy_num, self.args.ally_num)
+            elif self.args.env == "particle":
+                agent_outs, self.hidden_states = self.agent(agent_inputs, 
+                                                           self.hidden_states.reshape(-1, 1, self.args.emb), env = "particle")
 
         return agent_outs.view(ep_batch.batch_size, self.n_agents, -1)
 
@@ -105,13 +110,18 @@ class BasicMAC:
         inputs = th.cat([x.reshape(bs*self.n_agents, -1) for x in inputs], dim=1)
         return inputs
 
-    def _build_inputs_transformer(self, batch, t):
+    def _build_inputs_transformer(self, batch, t, env = "sc2"):
         # currently we only support battles with marines (e.g. 3m 8m 5m_vs_6m)
         # you can implement your own with any other agent type.
         inputs = []
         raw_obs = batch["obs"][:, t]
         arranged_obs = th.cat((raw_obs[:, :, -1:], raw_obs[:, :, :-1]), 2)
-        reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, self.args.token_dim)
+
+        if env == "sc2":
+            reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, self.args.token_dim)
+        elif env == "particle":
+            reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)
+        
         inputs.append(reshaped_obs)
         
         if self.args.use_cuda:
