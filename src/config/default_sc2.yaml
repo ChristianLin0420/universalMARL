@@ -48,8 +48,8 @@ token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be dif
 emb: 32 # embedding dimension of transformer
 heads: 3 # head number of transformer
 depth: 2 # block number of transformer
-ally_num: 8 # number of ally (5m_vs_6m)
-enemy_num: 8 # number of enemy (5m_vs_6m)
+ally_num: 3 # number of ally (5m_vs_6m)
+enemy_num: 3 # number of enemy (5m_vs_6m)
 
 # --- Experiment running params ---
 repeat_id: 1
