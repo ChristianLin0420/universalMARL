@@ -3,10 +3,10 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
-from encoder import Encoder
-from decoder import Decoder
+from .encoder import Encoder
+from .decoder import Decoder
 
-class VanillaTransformer(nn.Module):
+class Transformer(nn.Module):
 
     def __init__(self, args, input_dim, output_dim):
         super().__init__()
@@ -24,12 +24,12 @@ class VanillaTransformer(nn.Module):
 
         b, t, e,  = tokens.size()
 
-        x = self.encoder(x, mask)
+        x = self.encoder(tokens, mask)
 
         # reward token/hidden token
         d_tokens = torch.rand(b, 2, e)
 
-        x = self.decoder(d_tokens, x, False, False)
+        x = self.decoder(d_tokens, x, mask, mask)
 
         x = self.toprobs(x.view(b * 2, e)).view(b, 2, self.output_dim)
 

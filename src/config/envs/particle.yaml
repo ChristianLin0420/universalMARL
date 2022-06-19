@@ -2,8 +2,8 @@ env: particle
 
 env_args:
   scenario: "simple_spread"
-  n_agents: 15                 # number of ally
-  n_landmarks: 15              # number of landmark
+  n_agents: 5                 # number of ally
+  n_landmarks: 5              # number of landmark
   position_radius: 200
   n_adverary: 0
   continuing_episode: False

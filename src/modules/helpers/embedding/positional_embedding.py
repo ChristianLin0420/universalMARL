@@ -33,6 +33,6 @@ class PositionalEncoding(nn.Module):
         # compute positional encoding to consider positional information of words
 
     def forward(self, x):
-        batch_size, seq_len = x.size()
+        batch_size, seq_len, emb = x.size()
 
         return self.encoding[:seq_len, :]

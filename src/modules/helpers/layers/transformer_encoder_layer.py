@@ -1,6 +1,6 @@
-from torch.nn import nn
+import torch.nn as nn
 
-from self_attention import SelfAttention
+from .self_attention import SelfAttention
 
 class EncoderLayer(nn.Module):
 
@@ -20,8 +20,7 @@ class EncoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(emb)
         self.drop2 = nn.Dropout(dropout)
 
-    def forward(self, _x, mask):
-        x = _x
+    def forward(self, x, mask):
         attended = self.attention(x, mask)
 
         x = self.norm1(attended + x)
@@ -32,4 +31,4 @@ class EncoderLayer(nn.Module):
         x = self.norm2(fedforward + x)
         x = self.drop2(x)
 
-        return x, mask
+        return x

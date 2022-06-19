@@ -1,5 +1,5 @@
 import torch
-from torch import nn
+import torch.nn as nn
 
 from modules.helpers.layers.transformer_decoder_layer import DecoderLayer
 from modules.helpers.embedding.positional_embedding import PositionalEncoding
@@ -12,7 +12,7 @@ class Decoder(nn.Module):
         self.layers = nn.ModuleList([DecoderLayer(emb=args.emb,
                                                   heads=args.heads,
                                                   mask=mask,
-                                                  drop_prob=drop_prob)
+                                                  dropout=drop_prob)
                                      for _ in range(args.depth)])
 
 
@@ -24,8 +24,6 @@ class Decoder(nn.Module):
         for layer in self.layers:
             trg = layer(trg, enc_src, trg_mask, src_mask)
 
-        trg = torch.cat((trg, trg), 1)
-
-        print("Decoder output dimension: {}".format(trg.size()))
+        # print("Decoder output dimension: {}".format(trg.size()))
         
         return trg

@@ -1,6 +1,6 @@
-from torch.nn import nn
+import torch.nn as nn
 
-from self_attention import SelfAttention
+from .self_attention import SelfAttention
 
 class DecoderLayer(nn.Module):
 
@@ -15,7 +15,7 @@ class DecoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(emb)
         self.drop2 = nn.Dropout(dropout)
 
-        self.ff = nn.Sequential(
+        self.ffn = nn.Sequential(
             nn.Linear(emb, ff_hidden_mult * emb),
             nn.ReLU(),
             nn.Linear(ff_hidden_mult * emb, emb)
@@ -29,20 +29,21 @@ class DecoderLayer(nn.Module):
         x = self.attention(dec, t_mask)
         
         x = self.norm1(x + _x)
-        x = self.dropout1(x)
+        x = self.drop1(x)
 
         if enc is not None:
             _x = x
+            b, t, e = x.size()
             x = self.enc_dec_attention(x, s_mask, enc)
             
-            x = self.norm2(x + _x)
-            x = self.dropout2(x)
+            x = self.norm2(x[:, :t, :] + _x)
+            x = self.drop2(x)
 
         _x = x
         x = self.ffn(x)
         
         x = self.norm3(x + _x)
-        x = self.dropout3(x)
+        x = self.drop3(x)
 
         return x
         

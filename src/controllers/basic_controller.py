@@ -26,7 +26,7 @@ class BasicMAC:
     def forward(self, ep_batch, t, test_mode=False):
 
         # rnn based agent
-        if self.args.agent not in ['updet', 'transformer_aggregation', 'axial_transformer']:
+        if self.args.agent not in ['updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer']:
             agent_inputs = self._build_inputs(ep_batch, t)
             avail_actions = ep_batch["avail_actions"][:, t]
             agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states)
@@ -61,7 +61,7 @@ class BasicMAC:
             if self.args.env == "sc2":
                 agent_outs, self.hidden_states = self.agent(agent_inputs,
                                                            self.hidden_states.reshape(-1, 1, self.args.emb),
-                                                           self.args.enemy_num, self.args.ally_num)
+                                                           self.args.enemy_num, self.args.ally_num,)
             elif self.args.env == "particle":
                 agent_outs, self.hidden_states = self.agent(agent_inputs, 
                                                            self.hidden_states.reshape(-1, 1, self.args.emb), env = "particle")
@@ -69,7 +69,7 @@ class BasicMAC:
         return agent_outs.view(ep_batch.batch_size, self.n_agents, -1)
 
     def init_hidden(self, batch_size):
-        if self.args.agent not in ['updet', 'transformer_aggregation']:
+        if self.args.agent not in ['updet', 'transformer_aggregation', 'vanilla_transformer']:
             self.hidden_states = self.agent.init_hidden().unsqueeze(0).expand(batch_size, self.n_agents, -1)  # bav
         else:
             self.hidden_states = self.agent.init_hidden().unsqueeze(0).expand(batch_size, self.n_agents, 1, -1)

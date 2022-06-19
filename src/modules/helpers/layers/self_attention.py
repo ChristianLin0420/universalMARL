@@ -24,19 +24,21 @@ class SelfAttention(nn.Module):
         h = self.heads
 
         if encoder_output is not None:
+            bq, tq, eq = encoder_output.size()
             keys = self.tokeys(x).view(b, t, h, e)
-            queries = self.toqueries(encoder_output).view(b, t, h, e)
+            queries = self.toqueries(encoder_output).view(b, tq, h, e)
             values = self.tovalues(x).view(b, t, h, e)
         else:
+            tq = t
             keys = self.tokeys(x).view(b, t, h, e)
-            queries = self.toqueries(x).view(b, t, h, e)
+            queries = self.toqueries(x).view(b, tq, h, e)
             values = self.tovalues(x).view(b, t, h, e)
 
         # compute scaled dot-product self-attention
 
         # - fold heads into the batch dimension
         keys = keys.transpose(1, 2).contiguous().view(b * h, t, e)
-        queries = queries.transpose(1, 2).contiguous().view(b * h, t, e)
+        queries = queries.transpose(1, 2).contiguous().view(b * h, tq, e)
         values = values.transpose(1, 2).contiguous().view(b * h, t, e)
 
         queries = queries / (e ** (1 / 4))
@@ -47,7 +49,7 @@ class SelfAttention(nn.Module):
         # - get dot product of queries and keys, and scale
         dot = torch.bmm(queries, keys.transpose(1, 2))
 
-        assert dot.size() == (b * h, t, t)
+        assert dot.size() == (b * h, tq, t)
 
         if self.mask:  # mask out the upper half of the dot matrix, excluding the diagonal
             mask_(dot, maskval=float('-inf'), mask_diagonal=False)
@@ -59,10 +61,10 @@ class SelfAttention(nn.Module):
         # - dot now has row-wise self-attention probabilities
 
         # apply the self attention to the values
-        out = torch.bmm(dot, values).view(b, h, t, e)
+        out = torch.bmm(dot, values).view(b, h, tq, e)
 
         # swap h, t back, unify heads
-        out = out.transpose(1, 2).contiguous().view(b, t, h * e)
+        out = out.transpose(1, 2).contiguous().view(b, tq, h * e)
 
         return self.unifyheads(out)
 
