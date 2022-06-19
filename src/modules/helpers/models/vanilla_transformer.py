@@ -27,7 +27,10 @@ class Transformer(nn.Module):
         x = self.encoder(tokens, mask)
 
         # reward token/hidden token
-        d_tokens = torch.rand(b, 2, e)
+        if self.args.use_cuda:
+            d_tokens = torch.rand(b, 2, e)
+        else:
+            d_tokens = torch.rand(b, 2, e).cuda()
 
         x = self.decoder(d_tokens, x, mask, mask)
 
