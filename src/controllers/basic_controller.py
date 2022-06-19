@@ -61,7 +61,7 @@ class BasicMAC:
             if self.args.env == "sc2":
                 agent_outs, self.hidden_states = self.agent(agent_inputs,
                                                            self.hidden_states.reshape(-1, 1, self.args.emb),
-                                                           self.args.enemy_num, self.args.ally_num,)
+                                                           self.args.enemy_num, self.args.ally_num)
             elif self.args.env == "particle":
                 agent_outs, self.hidden_states = self.agent(agent_inputs, 
                                                            self.hidden_states.reshape(-1, 1, self.args.emb), env = "particle")

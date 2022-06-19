@@ -7,10 +7,10 @@ from modules.helpers.models.vanilla_transformer import Transformer
 
 
 class DummyTransformer(nn.Module):
-    def __init__(self, args, max_agents_len):
+    def __init__(self, input_shape, args):
         super(DummyTransformer, self).__init__()
         self.args = args
-        self.max_agents_len = max_agents_len
+        self.max_agents_len = args.max_agents_len
         self.transformer = Transformer(args, args.token_dim, args.emb)
         self.q_basic = nn.Linear(args.emb, args.action_space_size)
         
@@ -26,21 +26,18 @@ class DummyTransformer(nn.Module):
         b, t, e = inputs.size()
         tmp_inputs = torch.zeros(b, self.max_agents_len, e)
 
-        print("original inputs: {}".format(inputs.size()))
-
         if env == "sc2":
             tmp = torch.reshape(inputs, (b, t * e))
-            new = torch.zeros(b, t * e)
+            new = torch.zeros(b, self.max_agents_len * e)
             f_size = self.args.token_dim
             new[:, :4] = tmp[:, :4] # agent movement features
             new[:, 4] = tmp[:, 4]   # agent own feature
-            new[:, 5:task_ally_num * f_size] = tmp[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
-            new[:, (self.max_agents_len * f_size):] = tmp[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
+            new[:, 5:(5 + (task_ally_num - 1) * f_size)] = tmp[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
+            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = tmp[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
+            inputs = torch.reshape(new, (b, self.max_agents_len, e))
         elif env == "particle":
             tmp_inputs[:, :t, :] = inputs
             inputs = tmp_inputs
-
-        print("new inputs: {}".format(inputs.size()))
 
         outputs, _ = self.transformer.forward(inputs, hidden_state, None)
 
@@ -54,7 +51,7 @@ class DummyTransformer(nn.Module):
 
             # each enemy has an output Q
             for i in range(task_enemy_num):
-                q_enemy = self.q_basic(outputs[:, 1 + i, :])
+                q_enemy = self.q_basic(outputs[:, int(self.max_agents_len / 2) + i, :])
                 q_enemy_mean = torch.mean(q_enemy, 1, True)
                 q_enemies_list.append(q_enemy_mean)
 

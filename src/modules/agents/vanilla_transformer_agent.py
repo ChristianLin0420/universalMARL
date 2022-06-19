@@ -33,7 +33,8 @@ class VanillaTransformer(nn.Module):
 
             # each enemy has an output Q
             for i in range(task_enemy_num):
-                q_enemy = self.q_basic(outputs[:, 1 + i, :])
+                # q_enemy = self.q_basic(outputs[:, 1 + i, :])
+                q_enemy = self.q_basic(outputs[:, int(self.args.max_agents_len / 2) + i, :])
                 q_enemy_mean = torch.mean(q_enemy, 1, True)
                 q_enemies_list.append(q_enemy_mean)
 
