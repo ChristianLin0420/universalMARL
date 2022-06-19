@@ -1,3 +1,4 @@
+from ast import arg
 from lib2to3.pgen2 import token
 import torch.nn as nn
 import torch.nn.functional as F
@@ -10,6 +11,8 @@ class Transformer(nn.Module):
 
     def __init__(self, args, input_dim, output_dim):
         super().__init__()
+
+        self.args = args
 
         self.token_embedding = nn.Linear(input_dim, args.emb)
         self.encoder = Encoder(args, False, 0.0)
