@@ -24,7 +24,11 @@ class DummyTransformer(nn.Module):
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
 
         b, t, e = inputs.size()
-        tmp_inputs = torch.zeros(b, self.max_agents_len, e)
+
+        if self.args.use_cuda:
+            tmp_inputs = torch.zeros(b, self.max_agents_len, e).cuda()
+        else:
+            tmp_inputs = torch.zeros(b, self.max_agents_len, e)
 
         if env == "sc2":
             tmp = torch.reshape(inputs, (b, t * e))
