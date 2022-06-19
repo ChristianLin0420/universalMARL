@@ -31,9 +31,9 @@ class Transformer(nn.Module):
 
         # reward token/hidden token
         if self.args.use_cuda:
-            d_tokens = torch.rand(b, 2, e)
-        else:
             d_tokens = torch.rand(b, 2, e).cuda()
+        else:
+            d_tokens = torch.rand(b, 2, e)
 
         x = self.decoder(d_tokens, x, mask, mask)
 
