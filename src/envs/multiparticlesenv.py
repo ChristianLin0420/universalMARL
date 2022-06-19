@@ -391,6 +391,17 @@ class MultiParticleEnv(MultiAgentEnv):
     def save_replay(self):
         ''' Do nothing '''
 
+    def get_stats(self):
+        stats = {
+            # "battles_won": self.battles_won,
+            # "battles_game": self.battles_game,
+            # "battles_draw": self.timeouts,
+            # "win_rate": self.battles_won / self.battles_game,
+            # "timeouts": self.timeouts,
+            # "restarts": self.force_restarts,
+        }
+        return stats
+
     def get_env_info(self):
         env_info = {"state_shape": self.get_state_size(),
                     "obs_shape": self.get_obs_size(),
