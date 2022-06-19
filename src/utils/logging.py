@@ -38,6 +38,7 @@ class Logger:
                 self.sacred_info[key] = [value]
 
     def print_recent_stats(self):
+        import torch
         log_str = "Recent Stats | t_env: {:>10} | Episode: {:>8}\n".format(*self.stats["episode"][-1])
         i = 0
         for (k, v) in sorted(self.stats.items()):
@@ -45,7 +46,7 @@ class Logger:
                 continue
             i += 1
             window = 5 if k != "epsilon" else 1
-            item = "{:.4f}".format(np.mean([x[1].cpu() for x in self.stats[k][-window:]]))
+            item = "{:.4f}".format(np.mean([x[1] if not torch.is_tensor(x[1]) else x[1].cpu() for x in self.stats[k][-window:]]))
             log_str += "{:<25}{:>8}".format(k + ":", item)
             log_str += "\n" if i % 4 == 0 else "\t"
         self.console_logger.info(log_str)
