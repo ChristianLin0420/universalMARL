@@ -3,7 +3,7 @@ import torch.nn.functional as F
 import torch
 import argparse
 
-from .models.simple_transformer import Transformer
+from modules.helpers.models.simple_transformer import Transformer
 
 
 class UPDeT(nn.Module):

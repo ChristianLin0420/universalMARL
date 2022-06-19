@@ -13,8 +13,8 @@ log_interval: 2000 # Log summary of stats after every {} timesteps
 runner_log_interval: 2000 # Log runner stats (not test stats) every {} timesteps
 learner_log_interval: 2000 # Log training stats every {} timesteps
 t_max: 10 # Stop running after this many timesteps
-use_cuda: False # Use gpu by default unless it isn't available
-buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
+use_cuda: True # Use gpu by default unless it isn't available
+buffer_cpu_only: False # If true we won't keep all of the replay buffer in vram
 
 # --- Logging options ---
 use_tensorboard: True # Log results to tensorboard
@@ -45,6 +45,7 @@ action_space_size: 5
 
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 6 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
+max_len: 128
 emb: 32 # embedding dimension of transformer
 heads: 3 # head number of transformer
 depth: 2 # block number of transformer

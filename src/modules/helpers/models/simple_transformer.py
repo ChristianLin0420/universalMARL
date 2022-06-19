@@ -2,7 +2,7 @@ import torch.nn as nn
 import torch.nn.functional as F
 import torch
 
-from modules.agents.layers.self_attention import SelfAttention
+from modules.helpers.layers.self_attention import SelfAttention
 
 class TransformerBlock(nn.Module):
 

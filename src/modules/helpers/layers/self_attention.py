@@ -1,3 +1,4 @@
+
 import torch.nn as nn
 import torch.nn.functional as F
 import torch
@@ -17,13 +18,19 @@ class SelfAttention(nn.Module):
 
         self.unifyheads = nn.Linear(heads * emb, emb)
 
-    def forward(self, x, mask):
+    def forward(self, x, mask, encoder_output = None):
 
         b, t, e = x.size()
         h = self.heads
-        keys = self.tokeys(x).view(b, t, h, e)
-        queries = self.toqueries(x).view(b, t, h, e)
-        values = self.tovalues(x).view(b, t, h, e)
+
+        if encoder_output is not None:
+            keys = self.tokeys(x).view(b, t, h, e)
+            queries = self.toqueries(encoder_output).view(b, t, h, e)
+            values = self.tovalues(x).view(b, t, h, e)
+        else:
+            keys = self.tokeys(x).view(b, t, h, e)
+            queries = self.toqueries(x).view(b, t, h, e)
+            values = self.tovalues(x).view(b, t, h, e)
 
         # compute scaled dot-product self-attention
 
