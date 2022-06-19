@@ -9,10 +9,11 @@ from .decoder import Decoder
 
 class Transformer(nn.Module):
 
-    def __init__(self, args, input_dim, output_dim):
+    def __init__(self, args, input_dim, output_dim, dummy = False):
         super().__init__()
 
         self.args = args
+        self.dummy = dummy
 
         self.token_embedding = nn.Linear(input_dim, args.emb)
         self.encoder = Encoder(args, False, 0.0)
@@ -30,13 +31,18 @@ class Transformer(nn.Module):
         x = self.encoder(tokens, mask)
 
         # reward token/hidden token
-        if self.args.use_cuda:
-            d_tokens = torch.rand(b, self.args.max_agents_len + 1, e).cuda()
+        if self.dummy:
+            latent_size = self.args.max_agents_len + 1
         else:
-            d_tokens = torch.rand(b, self.args.max_agents_len + 1, e)
+            latent_size = 2
+
+        if self.args.use_cuda:
+            d_tokens = torch.rand(b, latent_size, e).cuda()
+        else:
+            d_tokens = torch.rand(b, latent_size, e)
 
         x = self.decoder(d_tokens, x, mask, mask)
 
-        x = self.toprobs(x.view(b * (self.args.max_agents_len + 1), e)).view(b, self.args.max_agents_len + 1, self.output_dim)
+        x = self.toprobs(x.view(b * latent_size, e)).view(b, latent_size, self.output_dim)
 
         return x, tokens

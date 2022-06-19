@@ -11,7 +11,7 @@ class DummyTransformer(nn.Module):
         super(DummyTransformer, self).__init__()
         self.args = args
         self.max_agents_len = args.max_agents_len
-        self.transformer = Transformer(args, args.token_dim, args.emb)
+        self.transformer = Transformer(args, args.token_dim, args.emb, True)
         self.q_basic = nn.Linear(args.emb, args.action_space_size)
         
     def init_hidden(self):
