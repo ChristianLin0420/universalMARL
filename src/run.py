@@ -134,7 +134,7 @@ def run_sequential(args, logger):
 
         if args.load_step == 0:
             # choose the max timestep
-            timestep_to_load = max(timesteps)
+            timestep_to_load = min(timesteps)
         else:
             # choose the timestep closest to load_step
             timestep_to_load = min(timesteps, key = lambda x: abs(x - args.load_step))
