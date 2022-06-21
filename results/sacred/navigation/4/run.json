@@ -1,0 +1,90 @@
+{
+  "artifacts": [],
+  "command": "my_main",
+  "experiment": {
+    "base_dir": "/Users/christianlin/Desktop/DRL Project/universalMARL/src",
+    "dependencies": [
+      "munch==2.5.0",
+      "numpy==1.22.3",
+      "PyYAML==6.0",
+      "sacred==0.8.2",
+      "torch==1.11.0"
+    ],
+    "mainfile": "main.py",
+    "name": "universalMARL",
+    "repositories": [
+      {
+        "commit": "f13587174623093c01be990eb58049eb41f0004e",
+        "dirty": true,
+        "url": "https://github.com/ChristianLin0420/universalMARL.git"
+      },
+      {
+        "commit": "f13587174623093c01be990eb58049eb41f0004e",
+        "dirty": true,
+        "url": "https://github.com/ChristianLin0420/universalMARL.git"
+      },
+      {
+        "commit": "f13587174623093c01be990eb58049eb41f0004e",
+        "dirty": true,
+        "url": "https://github.com/ChristianLin0420/universalMARL.git"
+      }
+    ],
+    "sources": [
+      [
+        "main.py",
+        "_sources/main_06912057f673d6c6065ea751ed67cca9.py"
+      ],
+      [
+        "run.py",
+        "_sources/run_82521908dc728c16cec5a984312fea66.py"
+      ],
+      [
+        "utils/logging.py",
+        "_sources/logging_aa14e56e60b01dd7a9ddb8e6cdf36b85.py"
+      ]
+    ]
+  },
+  "heartbeat": "2022-05-26T19:50:36.789341",
+  "host": {
+    "ENV": {},
+    "cpu": "Apple M1",
+    "hostname": "Christians-MBP",
+    "os": [
+      "Darwin",
+      "macOS-12.3.1-arm64-i386-64bit"
+    ],
+    "python_version": "3.8.13"
+  },
+  "meta": {
+    "command": "my_main",
+    "options": {
+      "--beat-interval": null,
+      "--capture": null,
+      "--comment": null,
+      "--debug": false,
+      "--enforce_clean": false,
+      "--file_storage": null,
+      "--force": false,
+      "--help": false,
+      "--loglevel": null,
+      "--mongo_db": null,
+      "--name": null,
+      "--pdb": false,
+      "--print-config": false,
+      "--priority": null,
+      "--queue": false,
+      "--s3": null,
+      "--sql": null,
+      "--tiny_db": null,
+      "--unobserved": false,
+      "COMMAND": null,
+      "UPDATE": [],
+      "help": false,
+      "with": false
+    }
+  },
+  "resources": [],
+  "result": null,
+  "start_time": "2022-05-26T17:08:20.962925",
+  "status": "RUNNING"
+}
