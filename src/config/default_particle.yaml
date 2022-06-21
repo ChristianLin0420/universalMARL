@@ -14,6 +14,7 @@ runner_log_interval: 2000 # Log runner stats (not test stats) every {} timesteps
 learner_log_interval: 2000 # Log training stats every {} timesteps
 t_max: 10 # Stop running after this many timesteps
 use_cuda: False # Use gpu by default unless it isn't available
+gpu_id: 0
 buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
 
 # --- Logging options ---
