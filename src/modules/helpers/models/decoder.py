@@ -29,7 +29,7 @@ class Decoder(nn.Module):
             for layer in self.layers:
                 tmp = layer(tmp[:, -1:, :], enc_src, trg_mask, src_mask)
 
-            trg = torch.concat([trg, tmp[:, -1:, :]], 1)
+            trg = torch.cat((trg, tmp[:, -1:, :]), 1)
 
         # print("Decoder output dimension: {}".format(trg.size()))
         
