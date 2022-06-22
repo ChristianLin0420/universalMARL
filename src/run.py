@@ -23,7 +23,9 @@ def run(_run, _config, _log):
 
     args = SN(**_config)
     args.device = "cuda:{}".format(args.gpu_id) if args.use_cuda else "cpu"
-    th.cuda.set_device(args.device)
+
+    if args.use_cuda:
+        th.cuda.set_device(args.device)
 
     # setup loggers
     logger = Logger(_log)

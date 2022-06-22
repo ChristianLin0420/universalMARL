@@ -35,7 +35,6 @@ class DecoderLayer(nn.Module):
             _x = x
             b, t, e = x.size()
             x = self.enc_dec_attention(x, s_mask, enc)
-            
             x = self.norm2(x[:, :t, :] + _x)
             x = self.drop2(x)
 
