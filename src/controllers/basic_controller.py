@@ -64,7 +64,7 @@ class BasicMAC:
                                                            self.args.enemy_num, self.args.ally_num)
             elif self.args.env == "particle":
                 agent_outs, self.hidden_states = self.agent(agent_inputs, 
-                                                           self.hidden_states.reshape(-1, 1, self.args.emb), env = "particle")
+                                                           self.hidden_states.reshape(-1, 1, self.args.emb), env = self.args.env_args.scenario)
             
         return agent_outs.view(ep_batch.batch_size, self.n_agents, -1)
 

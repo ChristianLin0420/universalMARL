@@ -18,11 +18,11 @@ class Decoder(nn.Module):
                                      for _ in range(args.depth)])
 
 
-    def forward(self, d, enc_src, trg_mask, src_mask):
+    def forward(self, d, enc_src, trg_mask, src_mask, len):
 
         trg = d
 
-        for i in range(self.args.max_agents_len):
+        for i in range(len):
             p_emb = self.posit_emb(trg)
             tmp = trg[:, -1:, :] + p_emb[-1:, :]
 

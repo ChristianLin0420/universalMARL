@@ -33,17 +33,16 @@ class Transformer(nn.Module):
         # reward token/hidden token
         latent_size = 1
         final_size = self.args.max_agents_len + 1
-        # if self.dummy:
-        #     latent_size = self.args.max_agents_len + 1
-        # else:
-        #     latent_size = 2
 
         if self.args.use_cuda:
             d_tokens = torch.rand(b, latent_size, e).cuda()
         else:
             d_tokens = torch.rand(b, latent_size, e)
 
-        x = self.decoder(d_tokens, x, mask, mask)
+        if self.dummy:
+            x = self.decoder(d_tokens, x, mask, mask, self.args.max_agents_len)
+        else:
+            x = self.decoder(d_tokens, x, mask, mask, t)
 
         x = self.toprobs(x.view(b * final_size, e)).view(b, final_size, self.output_dim)
 

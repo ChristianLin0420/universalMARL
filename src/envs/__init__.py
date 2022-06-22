@@ -13,7 +13,12 @@ def env_fn(env, **kwargs) -> MultiAgentEnv:
 def get_particle_env(env, **kwargs) -> MultiAgentEnv:
     scenario = scenarios.load(kwargs["scenario"] + ".py").Scenario()
     # create world
-    world = scenario.make_world(kwargs["n_agents"], kwargs["n_landmarks"])
+
+    if kwargs["scenario"] == "simple_spread": 
+        world = scenario.make_world(kwargs["n_agents"], kwargs["n_landmarks"])
+    elif kwargs["scenario"] == "simple_tag":
+        world = scenario.make_world(kwargs["n_agents"], kwargs["n_adverary"], kwargs["n_landmarks"])
+
     return env(world, scenario.reset_world, scenario.reward, scenario.observation, None, scenario.game_over, kwargs["share_view"], kwargs["seed"])
 
 REGISTRY = {}

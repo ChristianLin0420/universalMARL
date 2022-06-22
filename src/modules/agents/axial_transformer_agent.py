@@ -292,7 +292,7 @@ class AxialTransformerAgent(nn.Module):
 
             return q, h
         
-        elif env == "particle":
+        elif env in ["simple_tag, simple_spread"]:
             return q_basic_actions, h
 
 # attention
