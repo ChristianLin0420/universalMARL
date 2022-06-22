@@ -43,6 +43,7 @@ class Transformer(nn.Module):
             x = self.decoder(d_tokens, x, mask, mask, self.args.max_agents_len)
         else:
             x = self.decoder(d_tokens, x, mask, mask, t)
+            final_size = t + 1
 
         x = self.toprobs(x.view(b * final_size, e)).view(b, final_size, self.output_dim)
 

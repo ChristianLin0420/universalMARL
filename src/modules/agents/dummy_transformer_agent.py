@@ -30,7 +30,7 @@ class DummyTransformer(nn.Module):
         else:
             tmp_inputs = torch.zeros(b, self.max_agents_len, e)
 
-        if env == "sc2" or self.args.env_args.scenario == "simple_tag":
+        if env == "sc2" or env == "simple_tag":
             tmp = torch.reshape(inputs, (b, t * e))
             new = torch.zeros(b, self.max_agents_len * e)
             f_size = self.args.token_dim
@@ -39,7 +39,7 @@ class DummyTransformer(nn.Module):
             new[:, 5:(5 + (task_ally_num - 1) * f_size)] = tmp[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
             new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = tmp[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
             inputs = torch.reshape(new, (b, self.max_agents_len, e))
-        elif self.args.env_args.scenario == "simple_spread":
+        elif env == "simple_spread":
             tmp_inputs[:, :t, :] = inputs
             inputs = tmp_inputs
 
@@ -50,7 +50,7 @@ class DummyTransformer(nn.Module):
         # last dim for hidden state
         h = outputs[:, -1:, :]
 
-        if env == "sc2":
+        if env == "sc2" or env == "simple_tag":
             q_enemies_list = []
 
             # each enemy has an output Q
@@ -67,5 +67,5 @@ class DummyTransformer(nn.Module):
 
             return q, h
         
-        elif env == "particle":
+        elif env == "simple_spread":
             return q_basic_actions, h
