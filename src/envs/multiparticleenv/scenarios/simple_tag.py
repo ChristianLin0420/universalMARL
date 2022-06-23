@@ -1,6 +1,6 @@
 import numpy as np
-from multiparticleenv.core import World, Agent, Landmark
-from multiparticleenv.scenario import BaseScenario
+from envs.multiparticleenv.core import World, Agent, Landmark
+from envs.multiparticleenv.scenario import BaseScenario
 
 
 class Scenario(BaseScenario):
@@ -151,10 +151,17 @@ class Scenario(BaseScenario):
         comm = []
         other_pos = []
         other_vel = []
+        num_good_agents = 1 if not agent.adversary else 0
         for other in world.agents:
             if other is agent: continue
             comm.append(other.state.c)
             other_pos.append(other.state.p_pos - agent.state.p_pos)
             if not other.adversary:
+                num_good_agents += 1
                 other_vel.append(other.state.p_vel)
+
+        if not agent.adversary:
+            for i in range(num_good_agents):
+                other_vel.append([0, 0])
+
         return np.concatenate([agent.state.p_vel] + [agent.state.p_pos] + entity_pos + other_pos + other_vel)

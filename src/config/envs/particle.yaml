@@ -1,11 +1,11 @@
-env: particle
+env: simple_tag
 
 env_args:
-  scenario: simple_spread
-  n_agents: 5                 # number of ally
-  n_landmarks: 5              # number of landmark
+  scenario: simple_tag 
+  n_agents: 1                 # number of ally
+  n_landmarks: 0              # number of landmark
   position_radius: 200
-  n_adverary: 0
+  n_adverary: 3
   continuing_episode: False
   difficulty: "7"
   game_version: null

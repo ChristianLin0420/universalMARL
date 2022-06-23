@@ -19,11 +19,14 @@ def get_particle_env(env, **kwargs) -> MultiAgentEnv:
     elif kwargs["scenario"] == "simple_tag":
         world = scenario.make_world(kwargs["n_agents"], kwargs["n_adverary"], kwargs["n_landmarks"])
 
-    return env(world, scenario.reset_world, scenario.reward, scenario.observation, None, scenario.game_over, kwargs["share_view"], kwargs["seed"])
+    return env(kwargs["scenario"], world, scenario.reset_world, scenario.reward, scenario.observation, None, scenario.game_over, kwargs["share_view"], kwargs["seed"])
 
 REGISTRY = {}
 REGISTRY["sc2"] = partial(env_fn, env=StarCraft2Env)
-REGISTRY["particle"] = partial(get_particle_env, env=MultiParticleEnv)
+
+# particle environment
+REGISTRY["simple_spread"] = partial(get_particle_env, env=MultiParticleEnv)
+REGISTRY["simple_tag"] = partial(get_particle_env, env=MultiParticleEnv)
 
 if sys.platform == "linux":
     os.environ.setdefault("SC2PATH",

@@ -41,5 +41,5 @@ class GPT(nn.Module):
 
             return q, h
         
-        elif env == "particle":
+        elif env in ["simple_spread", "simple_tag"]:
             return q_basic_actions, h

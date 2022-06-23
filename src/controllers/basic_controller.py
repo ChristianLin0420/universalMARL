@@ -118,9 +118,11 @@ class BasicMAC:
 
         if env == "sc2":
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, self.args.token_dim)
-        elif env == "particle":
+        elif env == "simple_spread":
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)
-        
+        elif env == "simple_tag":
+            reshaped_obs = arranged_obs.view(-1, (self.args.env_args["n_agents"] + self.args.env_args["n_adverary"] - 1), self.args.token_dim)
+
         inputs.append(reshaped_obs)
         
         if self.args.use_cuda:

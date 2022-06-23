@@ -14,6 +14,7 @@ class MultiParticleEnv(MultiAgentEnv):
 
     def __init__(
         self, 
+        scenario,
         world, 
         reset_callback = None, 
         reward_callback = None,
@@ -26,6 +27,7 @@ class MultiParticleEnv(MultiAgentEnv):
         self.viewer_width = 400.0
         self.viewer_height = 400.0
 
+        self.scenario = scenario
         self.world = world
         self.agents = self.world.policy_agents
         # set required vectorized gym env property
@@ -207,7 +209,10 @@ class MultiParticleEnv(MultiAgentEnv):
 
     def get_obs_size(self):
         """ Returns the shape of the observation """
-        agents_obs_size = len(self.world.agents) * (self.world.dim_p * 2 + self.world.dim_c)
+        if self.scenario == "simple_spread":
+            agents_obs_size = len(self.world.agents) * (self.world.dim_p * 2 + self.world.dim_c)
+        elif self.scenario == "simple_tag": 
+            agents_obs_size = (len(self.world.agents) - 1) * 4
         return agents_obs_size
 
     def get_state(self):
@@ -230,7 +235,7 @@ class MultiParticleEnv(MultiAgentEnv):
         state = np.append(ally_state.flatten(), enemy_state.flatten())
         state = state.astype(dtype = np.float32)
 
-        return state
+        return state.tolist()
 
     def get_state_size(self):
         size = 0
