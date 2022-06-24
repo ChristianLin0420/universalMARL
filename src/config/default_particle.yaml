@@ -3,7 +3,7 @@
 # --- universalMARL options ---
 runner: "episode" # Runs 1 env for an episode
 mac: "basic_mac" # Basic controller
-env: "simple_tag" # Environment name
+env: "simple_spread" # Environment name
 env_args: {} # Arguments for the environment
 batch_size_run: 1 # Number of environments to run in parallel
 test_nepisode: 20 # Number of episodes to test for
@@ -21,8 +21,8 @@ buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
 use_tensorboard: True # Log results to tensorboard
 save_model: True # Save the models to disk
 save_model_interval: 150000 # Save models after this many timesteps
-checkpoint_path: "" # Load a checkpoint from this path
-mixing_net_path: "" # Load a specific mixing network from this path
+checkpoint_path: "results/models/navigation/qmix_smac_parallel__2022-06-20_00-05-57" # Load a checkpoint from this path
+mixing_net_path: "results/models/navigation/qmix_smac_parallel__2022-06-20_09-40-13/300240" # Load a specific mixing network from this path
 evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
 load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
 save_replay: False # Saving the replay of the model loaded from checkpoint_path
@@ -39,7 +39,7 @@ optim_eps: 0.00001 # RMSProp epsilon
 grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
 
 # --- Agent parameters ---
-agent: "updet" # Default rnn agent
+agent: "vanilla_transformer" # Default rnn agent
 rnn_hidden_dim: 32 # Size of hidden state for default rnn agent
 obs_agent_id: True # Include the agent's one_hot id in the observation
 obs_last_action: True # Include the agent's last action (one_hot) in the observation
@@ -47,7 +47,7 @@ action_space_size: 5
 max_agents_len: 20
 
 # --- Transformer parameters. Should be set manually. ---
-token_dim: 4 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
+token_dim: 6 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
 max_len: 128
 emb: 32 # embedding dimension of transformer
 heads: 3 # head number of transformer
