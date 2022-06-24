@@ -25,4 +25,4 @@ class Encoder(nn.Module):
 
         # print("Encoder output dimension: {}".format(_x.size()))
 
-        return x
+        return _x
