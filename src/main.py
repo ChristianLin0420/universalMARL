@@ -1,3 +1,4 @@
+from tkinter.messagebox import NO
 import numpy as np
 import os
 import collections
@@ -48,9 +49,14 @@ def _get_config_name(params, arg_name, delete = True):
 
     return config_name
 
-def _get_config(params, arg_name, subfolder):
+def _get_config(params, arg_name, subfolder, extra = None):
 
-    config_name = _get_config_name(params, arg_name)
+    if extra is None:
+        config_name = _get_config_name(params, arg_name)
+    else:
+        config_name = "sc2"
+
+    assert None != config_name
 
     if config_name is not None:
         with open(os.path.join(os.path.dirname(__file__), "config", subfolder, "{}.yaml".format(config_name)), "r") as f:
@@ -60,6 +66,7 @@ def _get_config(params, arg_name, subfolder):
             except yaml.YAMLError as exc:
                 assert False, "{}.yaml error: {}".format(config_name, exc)
         return config_dict
+        
 
 
 def recursive_dict_update(d, u):
@@ -98,12 +105,8 @@ if __name__ == '__main__':
 
     params = deepcopy(sys.argv)
 
-    default_config_name = _get_config_name(params, "--env-config", False)
-
-    if default_config_name is not None:
-        default_config_name = "default_{}.yaml".format(default_config_name)
-    else:
-        default_config_name = "default_sc2.yaml"
+    default_config_name = _get_config_name(params, "--env-config")
+    default_config_name = "default_{}.yaml".format(default_config_name)
 
     # Get the defaults from default.yaml
     with open(os.path.join(os.path.dirname(__file__), "config", default_config_name), "r") as f:
@@ -113,8 +116,13 @@ if __name__ == '__main__':
             assert False, "default.yaml error: {}".format(exc)
 
     # Load algorithm and env base configs
-    env_config = _get_config(params, "--env-config", "envs")
+    if default_config_name != "default_sc2.yaml":
+        env_config = _get_config(params, "--scenario", "envs")
+    else:
+        env_config = _get_config(params, "--env-config", "envs", "sc2")
+
     alg_config = _get_config(params, "--config", "algs")
+
     # config_dict = {**config_dict, **env_config, **alg_config}
     config_dict = recursive_dict_update(config_dict, env_config)
     config_dict = recursive_dict_update(config_dict, alg_config)
@@ -124,7 +132,7 @@ if __name__ == '__main__':
 
     # Save to disk by default for sacred
     logger.info("Saving to FileStorageObserver in results/sacred.")
-    file_obs_path = os.path.join(results_path, "sacred")
+    file_obs_path = os.path.join(results_path, "sacred", config_dict["env"])
     ex.observers.append(FileStorageObserver.create(file_obs_path))
 
     ex.run_commandline(params)

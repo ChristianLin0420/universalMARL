@@ -30,17 +30,21 @@ class DummyTransformer(nn.Module):
         else:
             tmp_inputs = torch.zeros(b, self.max_agents_len, e)
 
-        if env == "sc2" or env == "simple_tag":
-            tmp = torch.reshape(inputs, (b, t * e))
+        if env == "sc2":
+            inputs = torch.reshape(inputs, (b, t * e))
             new = torch.zeros(b, self.max_agents_len * e)
             f_size = self.args.token_dim
-            new[:, :4] = tmp[:, :4] # agent movement features
-            new[:, 4] = tmp[:, 4]   # agent own feature
-            new[:, 5:(5 + (task_ally_num - 1) * f_size)] = tmp[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
-            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = tmp[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
+            new[:, :4] = inputs[:, :4] # agent movement features
+            new[:, 4] = inputs[:, 4]   # agent own feature
+            new[:, 5:(5 + (task_ally_num - 1) * f_size)] = inputs[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
+            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = inputs[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
             inputs = torch.reshape(new, (b, self.max_agents_len, e))
         elif env == "simple_spread":
             tmp_inputs[:, :t, :] = inputs
+            inputs = tmp_inputs
+        elif env == "simple_tag":
+            tmp_inputs[:, :self.args.n_agents, :] = inputs[:, :self.args.n_agents, :]
+            tmp_inputs[:, self.args.n_agents:(self.args.n_agents + self.args.n_adverary), :] = inputs[:, self.args.n_agents:, :]
             inputs = tmp_inputs
 
         outputs, _ = self.transformer.forward(inputs, hidden_state, None)
@@ -50,7 +54,7 @@ class DummyTransformer(nn.Module):
         # last dim for hidden state
         h = outputs[:, -1:, :]
 
-        if env == "sc2" or env == "simple_tag":
+        if env == "sc2":
             q_enemies_list = []
 
             # each enemy has an output Q
@@ -67,5 +71,5 @@ class DummyTransformer(nn.Module):
 
             return q, h
         
-        elif env == "simple_spread":
+        elif env in ["simple_spread", "simple_tag"]:
             return q_basic_actions, h
