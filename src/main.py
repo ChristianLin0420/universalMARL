@@ -2,6 +2,8 @@ from tkinter.messagebox import NO
 import numpy as np
 import os
 import collections
+import threading
+from pynvml import *
 from os.path import dirname, abspath
 from copy import deepcopy
 from sacred import Experiment, SETTINGS
@@ -54,7 +56,7 @@ def _get_config(params, arg_name, subfolder, extra = None):
     if extra is None:
         config_name = _get_config_name(params, arg_name)
     else:
-        config_name = "sc2"
+        config_name = extra
 
     assert None != config_name
 
@@ -86,9 +88,104 @@ def config_copy(config):
     else:
         return deepcopy(config)
 
-USING_MPS = False
+def auto():
+    # default_config_name = _get_config_name(params, "--env-config")
+    default_config_name = "default.yaml"
 
-if __name__ == '__main__':
+    # Get the defaults from default.yaml
+    with open(os.path.join(os.path.dirname(__file__), "config", default_config_name), "r") as f:
+        try:
+            config_dict = yaml.safe_load(f)
+        except yaml.YAMLError as exc:
+            assert False, "default.yaml error: {}".format(exc)
+
+    # automatically play entire experiments
+    experiment_counts = 0
+    threads = []
+
+    ex_config = _get_config(params, "", "experiments", config_dict["env"])
+
+    mixing_networks = ex_config["mixing_networks"]
+    agent_models = ex_config["agent_models"]
+    scenarios = ex_config["scenarios"]
+
+    assert False == os.path.exists("{}/{}".format(results_path, config_dict["experiment"]))
+
+    for key_s, val_s in scenarios.items():
+        # load environment config
+        env_config = _get_config(params, "", "envs", config_dict["env"])
+
+        if config_dict["env"] == "simple_spread":
+            u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
+            env_config = recursive_dict_update(env_config, u)
+
+        for key_a, val_a in agent_models.items():
+            agent = { "agent": key_a }
+            config_dict = recursive_dict_update(config_dict, agent)
+
+            for m_net in mixing_networks:
+                # get algorithm config
+                alg_config = _get_config(params, "--config", "algs", m_net)
+
+                config_dict = recursive_dict_update(config_dict, env_config)
+                config_dict = recursive_dict_update(config_dict, alg_config)
+
+                # rnn model transfer learning has not implenmented
+                scenario = int(key_s)
+
+                if scenario == 0:
+                    config_dict["task_dir"] = "default"
+                elif scenario == 1: 
+                    config_dict["task_dir"] = "benchmark"
+                elif scenario == 2:
+                    config_dict["task_dir"] = "transfer"
+
+                if config_dict["agent"] in ["rnn"] and scenario >= 2: 
+                    continue
+
+                # check whether there are enough memory space in GPUs
+                while True:
+                    gpu_idx = None
+
+                    for i in range(2):
+                        h = nvmlDeviceGetHandleByIndex(i)
+                        info = nvmlDeviceGetMemoryInfo(h)
+                        free = info.free / 1048576
+                        demand = None
+
+                        if scenario == 0:
+                            demand = val_a[0]
+                        else:
+                            demand = val_a[1]
+
+                        if free >= demand:
+                            gpu_idx = i
+                            break
+
+                    if gpu_idx is not None:
+                        config_dict["gpu_id"] = gpu_idx
+                        break
+
+                file_obs_path = os.path.join("{}.yaml".format(experiment_counts))
+                experiment_counts += 1
+
+                with open("{}.yaml".format(experiment_counts), 'w') as yaml_file:
+                    yaml.dump(config_dict, yaml_file, default_flow_style = False)
+
+                # now add all the config to sacred
+                ex.add_config(config_dict)
+
+                # Save to disk by default for sacred
+                logger.info("Saving to FileStorageObserver in results/sacred.")
+                file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
+                ex.observers.append(FileStorageObserver.create(file_obs_path))
+
+                task = threading.Thread(target = ex.run_commandline, args = params)
+                task.start()
+
+def single(params):
+    # environment checking
+    USING_MPS = False
 
     # environment checking
     if USING_MPS:
@@ -102,8 +199,6 @@ if __name__ == '__main__':
         # Set the device      
         device = "mps" if torch.backends.mps.is_available() else "cpu"
         print(f"Using device: {device}")
-
-    params = deepcopy(sys.argv)
 
     default_config_name = _get_config_name(params, "--env-config")
     default_config_name = "default_{}.yaml".format(default_config_name)
@@ -137,3 +232,11 @@ if __name__ == '__main__':
 
     ex.run_commandline(params)
 
+if __name__ == '__main__':
+
+    params = deepcopy(sys.argv)
+
+    if len(params) == 1: 
+        auto()
+    else:
+        auto(params)

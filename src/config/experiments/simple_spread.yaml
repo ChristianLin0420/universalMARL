@@ -1,0 +1,24 @@
+# --- Experinments Settings ---
+
+env: "simple_spread"
+
+mixing_networks: [  # algo configs
+  "vdn_beta",
+  "qmix_beta",
+  "qtran"
+]
+
+agent_models: { # agent name / memory usage (upper bound)
+  "rnn" :                 [1300, 1400], 
+  "updet" :               [1500, 3100],
+  "vanilla_transformer" : [2000, 10700],
+  "dummy_transformer" :   [6000, 16500]
+}
+
+# --- Particles Environment ---
+scenarios: { # number of agent, number of landmarks
+  "0"   : [5, 5],   
+  "1"   : [15, 15],
+  "2"  : [15, 15]
+}
+

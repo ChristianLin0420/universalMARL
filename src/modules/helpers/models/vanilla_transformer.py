@@ -7,6 +7,8 @@ import torch
 from .encoder import Encoder
 from .decoder import Decoder
 
+from modules.helpers.embedding.random_layer import RandomLayer
+
 class Transformer(nn.Module):
 
     def __init__(self, args, input_dim, output_dim, dummy = False):
@@ -34,10 +36,7 @@ class Transformer(nn.Module):
         latent_size = 1
         final_size = self.args.max_agents_len + 1
 
-        if self.args.use_cuda:
-            d_tokens = torch.rand(b, latent_size, e).cuda()
-        else:
-            d_tokens = torch.rand(b, latent_size, e)
+        d_tokens = RandomLayer().get_random_vector(b, latent_size, e)
 
         if self.dummy:
             x = self.decoder(d_tokens, x, mask, mask, self.args.max_agents_len)

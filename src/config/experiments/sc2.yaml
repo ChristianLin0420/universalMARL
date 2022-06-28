@@ -1,0 +1,30 @@
+# --- Experinments Settings ---
+
+env: "sc2"
+
+mixing_networks: [
+  "vdn_beta",
+  "qmix_beta",
+  "qtran"
+]
+
+agent_models: [
+  "rnn", 
+  "updet",
+  "vanilla_transformer",
+  "dummy_transformer"
+]
+
+save_model_interval: 100000 # Save models after this many timesteps
+test_interval: 10000
+log_interval: 5000
+runner_log_interval: 5000
+learner_log_interval: 5000
+
+max_agents_len: 20
+
+# --- SMAC Environment ---
+agents_enemies: [
+  [3, 3],           # 3 marines vs 3 marines
+  [8, 8]            # 8 marines vs 8 marines
+]

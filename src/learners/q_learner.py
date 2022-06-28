@@ -146,4 +146,4 @@ class QLearner:
                 self.optimiser.load_state_dict(th.load("{}/opt.th".format(path), map_location=lambda storage, loc: storage))
 
                 for param in self.mixer.parameters():
-                    param.requires_grad = False
+                    param.requires_grad = self.args.fixed_mixing_networdk
