@@ -1,6 +1,8 @@
+from asyncio import sleep
 from tkinter.messagebox import NO
 import numpy as np
 import os
+import time
 import collections
 import threading
 from pynvml import *
@@ -25,6 +27,7 @@ ex.captured_out_filter = apply_backspaces_and_linefeeds
 
 results_path = os.path.join(dirname(dirname(abspath(__file__))), "results")
 
+PAUSE_NEXT_TASK_DURATION = 10
 
 @ex.main
 def my_main(_run, _config, _log):
@@ -99,10 +102,7 @@ def auto():
         except yaml.YAMLError as exc:
             assert False, "default.yaml error: {}".format(exc)
 
-    # automatically play entire experiments
-    experiment_counts = 0
-    threads = []
-
+    # automatically play entire experiments (set experiment config)
     ex_config = _get_config(params, "", "experiments", config_dict["env"])
 
     mixing_networks = ex_config["mixing_networks"]
@@ -166,12 +166,6 @@ def auto():
                         config_dict["gpu_id"] = gpu_idx
                         break
 
-                file_obs_path = os.path.join("{}.yaml".format(experiment_counts))
-                experiment_counts += 1
-
-                with open("{}.yaml".format(experiment_counts), 'w') as yaml_file:
-                    yaml.dump(config_dict, yaml_file, default_flow_style = False)
-
                 # now add all the config to sacred
                 ex.add_config(config_dict)
 
@@ -182,6 +176,8 @@ def auto():
 
                 task = threading.Thread(target = ex.run_commandline, args = params)
                 task.start()
+
+                time.sleep(PAUSE_NEXT_TASK_DURATION)
 
 def single(params):
     # environment checking
