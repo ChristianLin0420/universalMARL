@@ -92,7 +92,9 @@ def config_copy(config):
         return deepcopy(config)
 
 def auto():
-    # default_config_name = _get_config_name(params, "--env-config")
+
+    nvmlInit()
+
     default_config_name = "default.yaml"
 
     # Get the defaults from default.yaml
