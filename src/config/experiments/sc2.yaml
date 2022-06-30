@@ -21,8 +21,6 @@ log_interval: 5000
 runner_log_interval: 5000
 learner_log_interval: 5000
 
-max_agents_len: 20
-
 # --- SMAC Environment ---
 agents_enemies: [
   [3, 3],           # 3 marines vs 3 marines

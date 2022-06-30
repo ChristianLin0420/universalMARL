@@ -24,7 +24,7 @@ class RandomLayer(nn.Module):
                 else:
                     return data
         else:
-            tmp = torch.rand(64, 50, 64)
+            tmp = torch.rand(512, 50, 64)
             data = tmp.tolist()
 
             json_string = {"vectors" : data}
@@ -34,7 +34,7 @@ class RandomLayer(nn.Module):
                 outfile.write(json_string)
 
             if self.args.use_cuda:
-                return tmp[:b, :t, :e].cuda()
+                return tmp.cuda()
             else:
-                return tmp[:b, :t, :e]
+                return tmp
             

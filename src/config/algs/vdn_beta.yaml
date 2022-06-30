@@ -19,5 +19,12 @@ agent_output_type: "q"
 learner: "q_learner"
 double_q: True
 mixer: "vdn"
+mixing_embed_dim: 32
+qtran_arch: ""
+
+opt_loss: 1
+nopt_min_loss: 0.1
+
+network_size: small
 
 name: "vdn_smac_parallel"

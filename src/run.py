@@ -40,13 +40,14 @@ def run(_run, _config, _log):
     if args.use_tensorboard:
         tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", args.experiment, "tb_logs", args.env, args.task_dir)
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
+        print("tb_exp_direc: {}".format(tb_exp_direc))
         logger.setup_tb(tb_exp_direc)
 
     # sacred is on by default
     logger.setup_sacred(_run)
 
     # Run and train
-    run_sequential(args = args, logger = logger)
+    info = run_sequential(args = args, logger = logger)
 
     # Clean up after finishing
     print("Exiting Main")
@@ -61,7 +62,9 @@ def run(_run, _config, _log):
     print("Exiting script")
 
     # Making sure framework really exits
-    os._exit(os.EX_OK)
+    # os._exit(os.EX_OK)
+
+    return info
 
 
 def evaluate_sequential(args, runner):
@@ -146,7 +149,11 @@ def run_sequential(args, logger):
 
         logger.console_logger.info("Loading model from {}".format(model_path))
         learner.load_models(model_path)
-        runner.t_env = timestep_to_load
+
+        if args.finetuned:
+            runner.t_env = 0
+        else:
+            runner.t_env = timestep_to_load
 
         if args.evaluate or args.save_replay:
             evaluate_sequential(args, runner)
@@ -160,6 +167,8 @@ def run_sequential(args, logger):
 
     start_time = time.time()
     last_time = start_time
+
+    info = {}
 
     logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
 
@@ -196,7 +205,7 @@ def run_sequential(args, logger):
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
             model_save_time = runner.t_env
-            save_path = os.path.join(args.local_results_path, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
+            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
             #"results/models/{}".format(unique_token)
             os.makedirs(save_path, exist_ok = True)
             logger.console_logger.info("Saving models to {}".format(save_path))
@@ -204,6 +213,10 @@ def run_sequential(args, logger):
             # learner should handle saving/loading -- delegate actor save/load to mac,
             # use appropriate filenames to do critics, optimizer states
             learner.save_models(save_path)
+
+            if runner.t_env - model_save_time >= args.save_model_interval:
+                info["saved_model_path"] = save_path
+
 
         episode += args.batch_size_run
 
@@ -214,6 +227,8 @@ def run_sequential(args, logger):
 
     runner.close_env()
     logger.console_logger.info("Finished Training")
+
+    return info
 
 
 def args_sanity_check(config, _log):

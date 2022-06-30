@@ -20,5 +20,11 @@ learner: "q_learner"
 double_q: True
 mixer: "qmix"
 mixing_embed_dim: 32
+qtran_arch: ""
+
+opt_loss: 1
+nopt_min_loss: 0.1
+
+network_size: small
 
 name: "qmix_smac_parallel"

@@ -41,4 +41,4 @@ env_args:
 
 test_greedy: True
 test_nepisode: 32
-t_max: 105000
+t_max: 1500

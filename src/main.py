@@ -27,7 +27,10 @@ ex.captured_out_filter = apply_backspaces_and_linefeeds
 
 results_path = os.path.join(dirname(dirname(abspath(__file__))), "results")
 
-PAUSE_NEXT_TASK_DURATION = 10
+PAUSE_NEXT_TASK_DURATION = 0
+
+BASELINES_MODEL_PATH = []
+BENCHMARKS_MODEL_PATH = []
 
 @ex.main
 def my_main(_run, _config, _log):
@@ -38,7 +41,17 @@ def my_main(_run, _config, _log):
     config['env_args']['seed'] = config["seed"]
 
     # run the framework
-    run(_run, config, _log)
+    info = run(_run, config, _log)
+
+    # record paths from baselines/benchmarks model training
+    path = info["saved_model_path"]
+
+    if config["agent"] != "rnn":
+        if config["task_dir"] == "baselines":
+            BASELINES_MODEL_PATH.append(path)
+        elif config["task_dir"] == "benchmarks":
+            BENCHMARKS_MODEL_PATH.append(path)
+
 
 def _get_config_name(params, arg_name, delete = True):
     config_name = None
@@ -91,9 +104,7 @@ def config_copy(config):
     else:
         return deepcopy(config)
 
-def auto():
-
-    nvmlInit()
+def auto(params):
 
     default_config_name = "default.yaml"
 
@@ -112,6 +123,12 @@ def auto():
     scenarios = ex_config["scenarios"]
 
     assert False == os.path.exists("{}/{}".format(results_path, config_dict["experiment"]))
+
+    cuda_available = th.cuda.is_available()
+    initialization = True
+
+    if cuda_available:
+        nvmlInit()
 
     for key_s, val_s in scenarios.items():
         # load environment config
@@ -136,49 +153,81 @@ def auto():
                 scenario = int(key_s)
 
                 if scenario == 0:
-                    config_dict["task_dir"] = "default"
+                    config_dict["task_dir"] = "baselines"
                 elif scenario == 1: 
-                    config_dict["task_dir"] = "benchmark"
+                    config_dict["task_dir"] = "benchmarks"
                 elif scenario == 2:
-                    config_dict["task_dir"] = "transfer"
+                    config_dict["task_dir"] = "transfers"
+                    config_dict["checkpoint_path"] = BASELINES_MODEL_PATH[0]
+                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0]
+
+                    del BASELINES_MODEL_PATH[0]
+                    del BENCHMARKS_MODEL_PATH[0]
 
                 if config_dict["agent"] in ["rnn"] and scenario >= 2: 
                     continue
 
-                # check whether there are enough memory space in GPUs
-                while True:
-                    gpu_idx = None
+                if cuda_available:
+                    # check whether there are enough memory space in GPUs
+                    while True:
+                        gpu_idx = None
 
-                    for i in range(2):
-                        h = nvmlDeviceGetHandleByIndex(i)
-                        info = nvmlDeviceGetMemoryInfo(h)
-                        free = info.free / 1048576
-                        demand = None
+                        for i in range(th.cuda.device_count()):
+                            h = nvmlDeviceGetHandleByIndex(i)
+                            gpu_info = nvmlDeviceGetMemoryInfo(h)
+                            free = gpu_info.free / 1048576
+                            demand = None
 
-                        if scenario == 0:
-                            demand = val_a[0]
-                        else:
-                            demand = val_a[1]
+                            if scenario == 0:
+                                demand = val_a[0]
+                            else:
+                                demand = val_a[1]
 
-                        if free >= demand:
-                            gpu_idx = i
+                            if free >= demand:
+                                gpu_idx = i
+                                break
+
+                        if gpu_idx is not None:
+                            config_dict["gpu_id"] = gpu_idx
                             break
 
-                    if gpu_idx is not None:
-                        config_dict["gpu_id"] = gpu_idx
-                        break
+                    logger = get_logger()
+                    ex.logger = logger
 
-                # now add all the config to sacred
-                ex.add_config(config_dict)
+                    # Save to disk by default for sacred
+                    logger.info("Saving to FileStorageObserver in results/sacred.")
+                    file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
 
-                # Save to disk by default for sacred
-                logger.info("Saving to FileStorageObserver in results/sacred.")
-                file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
-                ex.observers.append(FileStorageObserver.create(file_obs_path))
+                    # now add all the config to sacred
+                    if initialization:
+                        ex.add_config(config_dict)
+                        ex.observers.append(FileStorageObserver.create(file_obs_path))
+                        ex.run()
 
-                task = threading.Thread(target = ex.run_commandline, args = params)
-                task.start()
+                        initialization = False
+                    else:
+                        ex.observers[0] = FileStorageObserver.create(file_obs_path)
+                        ex.run(config_updates = config_dict)
 
+                else:
+                    logger = get_logger()
+                    ex.logger = logger
+
+                    # Save to disk by default for sacred
+                    logger.info("Saving to FileStorageObserver in results/sacred.")
+                    file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
+
+                    # now add all the config to sacred
+                    if initialization:
+                        ex.add_config(config_dict)
+                        ex.observers.append(FileStorageObserver.create(file_obs_path))
+                        ex.run()
+
+                        initialization = False
+                    else:
+                        ex.observers[0] = FileStorageObserver.create(file_obs_path)
+                        ex.run(config_updates = config_dict)
+                
                 time.sleep(PAUSE_NEXT_TASK_DURATION)
 
 def single(params):
@@ -220,12 +269,18 @@ def single(params):
     config_dict = recursive_dict_update(config_dict, env_config)
     config_dict = recursive_dict_update(config_dict, alg_config)
 
+    config_dict["task_dir"] = "default"
+    config_dict["experiment"] = "test"
+
     # now add all the config to sacred
     ex.add_config(config_dict)
 
+    logger = get_logger()
+    ex.logger = logger
+
     # Save to disk by default for sacred
     logger.info("Saving to FileStorageObserver in results/sacred.")
-    file_obs_path = os.path.join(results_path, "sacred", config_dict["env"])
+    file_obs_path = os.path.join(results_path,  config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
     ex.observers.append(FileStorageObserver.create(file_obs_path))
 
     ex.run_commandline(params)
@@ -235,6 +290,6 @@ if __name__ == '__main__':
     params = deepcopy(sys.argv)
 
     if len(params) == 1: 
-        auto()
-    else:
         auto(params)
+    else:
+        single(params)
