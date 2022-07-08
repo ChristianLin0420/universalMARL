@@ -140,7 +140,7 @@ def run_sequential(args, logger):
 
         if args.load_step == 0:
             # choose the max timestep
-            timestep_to_load = min(timesteps)
+            timestep_to_load = max(timesteps)
         else:
             # choose the timestep closest to load_step
             timestep_to_load = min(timesteps, key = lambda x: abs(x - args.load_step))
@@ -204,7 +204,7 @@ def run_sequential(args, logger):
                 runner.run(test_mode=True)
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
-            model_save_time = runner.t_env
+            # model_save_time = runner.t_env
             save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
             #"results/models/{}".format(unique_token)
             os.makedirs(save_path, exist_ok = True)
@@ -217,6 +217,7 @@ def run_sequential(args, logger):
             if runner.t_env - model_save_time >= args.save_model_interval:
                 info["saved_model_path"] = save_path
 
+            model_save_time = runner.t_env
 
         episode += args.batch_size_run
 

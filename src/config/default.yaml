@@ -1,5 +1,5 @@
 # --- Defaults ---
-experiment: "experiment_test_2"
+experiment: "experiment 2"
 
 # --- universalMARL options ---
 runner: "episode" # Runs 1 env for an episode
@@ -24,7 +24,7 @@ save_model: True # Save the models to disk
 save_model_interval: 100000 # Save models after this many timesteps
 checkpoint_path: "" # Load a checkpoint from this path
 mixing_net_path: "" # Load a specific mixing network from this path
-fixed_mixing_networdk: False
+fixed_mixing_networdk: True
 evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
 load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
 save_replay: False # Saving the replay of the model loaded from checkpoint_path

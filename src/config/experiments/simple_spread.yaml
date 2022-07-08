@@ -4,8 +4,8 @@ env: "simple_spread"
 
 mixing_networks: [  # algo configs
   "vdn_beta",
-  "qmix_beta",
-  "qtran"
+  "qmix_beta"
+  # "qtran"
 ]
 
 agent_models: { # agent name / memory usage (upper bound)

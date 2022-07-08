@@ -122,7 +122,7 @@ def auto(params):
     agent_models = ex_config["agent_models"]
     scenarios = ex_config["scenarios"]
 
-    assert False == os.path.exists("{}/{}".format(results_path, config_dict["experiment"]))
+    # assert False == os.path.exists("{}/{}".format(results_path, config_dict["experiment"]))
 
     cuda_available = th.cuda.is_available()
     initialization = True

@@ -233,6 +233,7 @@ class ReplayBuffer(EpisodeBatch):
 
     def sample(self, batch_size):
         assert self.can_sample(batch_size)
+
         if self.episodes_in_buffer == batch_size:
             return self[:batch_size]
         else:
