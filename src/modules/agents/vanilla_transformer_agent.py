@@ -46,5 +46,5 @@ class VanillaTransformer(nn.Module):
 
             return q, h
         
-        elif env in ["simple_spread", "simple_tag"]:
+        elif env in ["simple_spread"]:
             return q_basic_actions, h

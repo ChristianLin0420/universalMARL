@@ -6,10 +6,11 @@ import argparse
 from modules.helpers.models.simple_transformer import Transformer
 
 
-class UPDeT(nn.Module):
+class DummyUPDeT(nn.Module):
     def __init__(self, input_shape, args):
-        super(UPDeT, self).__init__()
+        super(DummyUPDeT, self).__init__()
         self.args = args
+        self.max_agents_len = args.max_agents_len
         self.transformer = Transformer(args.token_dim, args.emb, args.heads, args.depth, args.emb)
         self.q_basic = nn.Linear(args.emb, args.action_space_size)
 
@@ -21,6 +22,27 @@ class UPDeT(nn.Module):
             return torch.zeros(1, self.args.emb)
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
+        
+        b, t, e = inputs.size()
+
+        if self.args.use_cuda:
+            tmp_inputs = torch.zeros(b, self.max_agents_len, e).cuda()
+        else:
+            tmp_inputs = torch.zeros(b, self.max_agents_len, e)
+
+        if env == "sc2":
+            inputs = torch.reshape(inputs, (b, t * e))
+            new = torch.zeros(b, self.max_agents_len * e)
+            f_size = self.args.token_dim
+            new[:, :4] = inputs[:, :4] # agent movement features
+            new[:, 4] = inputs[:, 4]   # agent own feature
+            new[:, 5:(5 + (task_ally_num - 1) * f_size)] = inputs[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
+            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = inputs[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
+            inputs = torch.reshape(new, (b, self.max_agents_len, e))
+        elif env == "simple_spread":
+            tmp_inputs[:, :t, :] = inputs
+            inputs = tmp_inputs
+
         outputs, _ = self.transformer.forward(inputs, hidden_state, None)
         # first output for 6 action (no_op stop up down left right)
         q_basic_actions = self.q_basic(outputs[:, 0, :])
@@ -62,7 +84,7 @@ if __name__ == '__main__':
 
 
     # testing the agent
-    agent = UPDeT(None, args).cuda()
+    agent = DummyUPDeT(None, args).cuda()
     hidden_state = agent.init_hidden().cuda().expand(args.ally_num, 1, -1)
     tensor = torch.rand(args.ally_num, args.ally_num+args.enemy_num, args.token_dim).cuda()
     q_list = []

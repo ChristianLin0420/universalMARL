@@ -42,10 +42,6 @@ class DummyTransformer(nn.Module):
         elif env == "simple_spread":
             tmp_inputs[:, :t, :] = inputs
             inputs = tmp_inputs
-        elif env == "simple_tag":
-            tmp_inputs[:, :self.args.n_agents, :] = inputs[:, :self.args.n_agents, :]
-            tmp_inputs[:, self.args.n_agents:(self.args.n_agents + self.args.n_adverary), :] = inputs[:, self.args.n_agents:, :]
-            inputs = tmp_inputs
 
         outputs, _ = self.transformer.forward(inputs, hidden_state, None)
 
@@ -71,5 +67,5 @@ class DummyTransformer(nn.Module):
 
             return q, h
         
-        elif env in ["simple_spread", "simple_tag"]:
+        elif env in ["simple_spread"]:
             return q_basic_actions, h

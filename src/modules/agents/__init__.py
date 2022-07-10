@@ -6,6 +6,9 @@ REGISTRY["rnn"] = RNNAgent
 from .updet_agent import UPDeT
 REGISTRY['updet'] = UPDeT
 
+from .dummy_updet_agent import DummyUPDeT
+REGISTRY['dummy_updet'] = DummyUPDeT
+
 from .vanilla_transformer_agent import VanillaTransformer
 REGISTRY['vanilla_transformer'] = VanillaTransformer
 

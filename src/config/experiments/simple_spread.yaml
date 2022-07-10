@@ -9,10 +9,11 @@ mixing_networks: [  # algo configs
 ]
 
 agent_models: { # agent name / memory usage (upper bound)
-  "rnn" :                 [1300, 1400], 
-  "updet" :               [1500, 3100],
-  "vanilla_transformer" : [2000, 10700],
-  "dummy_transformer" :   [6000, 16500]
+  # "rnn" :                 [1300, 1400], 
+  # "updet" :               [1500, 3100],
+  # "vanilla_transformer" : [2000, 10700],
+  # "dummy_transformer" :   [6000, 16500]
+  "dummy_updet": [5000, 10000]
 }
 
 # --- Particles Environment ---

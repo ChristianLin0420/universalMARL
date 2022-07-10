@@ -26,7 +26,7 @@ class BasicMAC:
     def forward(self, ep_batch, t, test_mode=False):
 
         # rnn based agent
-        if self.args.agent not in ['updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer']:
+        if self.args.agent not in ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer']:
             agent_inputs = self._build_inputs(ep_batch, t)
             avail_actions = ep_batch["avail_actions"][:, t]
             agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states)

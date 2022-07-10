@@ -1,5 +1,5 @@
 # --- Defaults ---
-experiment: "experiment 2"
+experiment: "experiment test"
 
 # --- universalMARL options ---
 runner: "episode" # Runs 1 env for an episode
