@@ -9,11 +9,11 @@ mixing_networks: [
 ]
 
 agent_models: { # agent name / memory usage (upper bound)
-  "rnn" :                 [1300, 1400], 
-  "updet" :               [1500, 3100],
-  "vanilla_transformer" : [2000, 10700],
-  "dummy_transformer" :   [6000, 16500],
-  "dummy_updet":          [2200, 4100]
+  "rnn" :                 [1400, 1400], 
+  "updet" :               [1600, 3500],
+  "vanilla_transformer" : [3000, 12000],
+  "dummy_transformer" :   [7000, 18000],
+  "dummy_updet":          [3000, 5000]
 }
 
 # --- SMAC Environment ---

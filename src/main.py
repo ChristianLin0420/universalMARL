@@ -160,8 +160,18 @@ def auto(params):
                     config_dict["task_dir"] = "benchmarks"
                 elif scenario == 2:
                     config_dict["task_dir"] = "transfers"
+
+                    timesteps = []
+
+                    # Go through all files in args.checkpoint_path
+                    for name in os.listdir(BENCHMARKS_MODEL_PATH[0]):
+                        full_name = os.path.join(BENCHMARKS_MODEL_PATH[0], name)
+                        # Check if they are dirs the names of which are numbers
+                        if os.path.isdir(full_name) and name.isdigit():
+                            timesteps.append(int(name))
+
                     config_dict["checkpoint_path"] = BASELINES_MODEL_PATH[0]
-                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/1000204"
+                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/{}".format(max(timesteps))
 
                     del BASELINES_MODEL_PATH[0]
                     del BENCHMARKS_MODEL_PATH[0]
