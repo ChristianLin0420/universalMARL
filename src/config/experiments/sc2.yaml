@@ -5,24 +5,20 @@ env: "sc2"
 mixing_networks: [
   "vdn_beta",
   "qmix_beta",
-  "qtran"
+  # "qtran"
 ]
 
-agent_models: [
-  "rnn", 
-  "updet",
-  "vanilla_transformer",
-  "dummy_transformer"
-]
-
-save_model_interval: 100000 # Save models after this many timesteps
-test_interval: 10000
-log_interval: 5000
-runner_log_interval: 5000
-learner_log_interval: 5000
+agent_models: { # agent name / memory usage (upper bound)
+  "rnn" :                 [1300, 1400], 
+  "updet" :               [1500, 3100],
+  "vanilla_transformer" : [2000, 10700],
+  "dummy_transformer" :   [6000, 16500],
+  "dummy_updet":          [2200, 4100]
+}
 
 # --- SMAC Environment ---
-agents_enemies: [
-  [3, 3],           # 3 marines vs 3 marines
-  [8, 8]            # 8 marines vs 8 marines
-]
+agents_enemies: {
+  "0": [3, 3],           # 3 marines vs 3 marines
+  "1": [8, 8],           # 8 marines vs 8 marines
+  "2": [8, 8]
+}

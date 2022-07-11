@@ -120,10 +120,8 @@ def auto(params):
 
     mixing_networks = ex_config["mixing_networks"]
     agent_models = ex_config["agent_models"]
-    scenarios = ex_config["scenarios"]
-
-    # assert False == os.path.exists("{}/{}".format(results_path, config_dict["experiment"]))
-
+    scenarios = ex_config["scenarios"] if config_dict["env"] == "simple_spread" else ex_config["agents_enemies"]
+    
     cuda_available = th.cuda.is_available()
     initialization = True
 
@@ -134,7 +132,11 @@ def auto(params):
         # load environment config
         env_config = _get_config(params, "", "envs", config_dict["env"])
 
-        if config_dict["env"] == "simple_spread":
+        if config_dict["env"] == "sc2":
+            map_name = "3m" if int(key_s) == 0 else "8m"
+            u = { "ally_num": val_s[0], "enemy_num": val_s[1], "env_args": {"map_name": map_name} }
+            env_config = recursive_dict_update(env_config, u)
+        elif config_dict["env"] == "simple_spread":
             u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
             env_config = recursive_dict_update(env_config, u)
 
@@ -159,7 +161,7 @@ def auto(params):
                 elif scenario == 2:
                     config_dict["task_dir"] = "transfers"
                     config_dict["checkpoint_path"] = BASELINES_MODEL_PATH[0]
-                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0]
+                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/1000240"
 
                     del BASELINES_MODEL_PATH[0]
                     del BENCHMARKS_MODEL_PATH[0]
