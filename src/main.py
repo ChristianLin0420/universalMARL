@@ -161,7 +161,7 @@ def auto(params):
                 elif scenario == 2:
                     config_dict["task_dir"] = "transfers"
                     config_dict["checkpoint_path"] = BASELINES_MODEL_PATH[0]
-                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/1000240"
+                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/1000204"
 
                     del BASELINES_MODEL_PATH[0]
                     del BENCHMARKS_MODEL_PATH[0]
