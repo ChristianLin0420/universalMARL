@@ -17,6 +17,7 @@ from utils.logging import get_logger
 import yaml
 
 from run import run
+from envs.smac_config import get_smac_map_config
 
 SETTINGS['CAPTURE_MODE'] = "fd" # set to "no" if you want to see stdout/stderr in console
 logger = get_logger()
@@ -118,10 +119,12 @@ def auto(params):
     # automatically play entire experiments (set experiment config)
     ex_config = _get_config(params, "", "experiments", config_dict["env"])
 
+    parallel_env = "_beta" if ex_config["parallel"] and ex_config["env"] == "sc2" else ""
     mixing_networks = ex_config["mixing_networks"]
     agent_models = ex_config["agent_models"]
     scenarios = ex_config["scenarios"] if config_dict["env"] == "simple_spread" else ex_config["agents_enemies"]
-    
+    map_names = ex_config["maps"]
+
     cuda_available = th.cuda.is_available()
     initialization = True
 
@@ -130,12 +133,12 @@ def auto(params):
 
     for key_s, val_s in scenarios.items():
         # load environment config
-        env_config = _get_config(params, "", "envs", config_dict["env"])
+        env_config = _get_config(params, "", "envs", config_dict["env"] + parallel_env)
 
         if config_dict["env"] == "sc2":
-            map_name = "3m" if int(key_s) == 0 else "8m"
-            u = { "ally_num": val_s[0], "enemy_num": val_s[1], "env_args": {"map_name": map_name} }
-            env_config = recursive_dict_update(env_config, u)
+            map_name = map_names[0]
+            map_c = get_smac_map_config(map_name)
+            env_config = recursive_dict_update(env_config, map_c)
         elif config_dict["env"] == "simple_spread":
             u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
             env_config = recursive_dict_update(env_config, u)
@@ -146,7 +149,7 @@ def auto(params):
 
             for m_net in mixing_networks:
                 # get algorithm config
-                alg_config = _get_config(params, "--config", "algs", m_net)
+                alg_config = _get_config(params, "--config", "algs", m_net + parallel_env)
 
                 config_dict = recursive_dict_update(config_dict, env_config)
                 config_dict = recursive_dict_update(config_dict, alg_config)

@@ -37,3 +37,6 @@ t_max: 10050000
 test_interval: 20000
 test_nepisode: 24
 test_greedy: True
+
+action_space_size: 6
+token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).

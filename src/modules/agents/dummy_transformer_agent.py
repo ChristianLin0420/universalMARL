@@ -34,11 +34,17 @@ class DummyTransformer(nn.Module):
             inputs = torch.reshape(inputs, (b, t * e))
             new = torch.zeros(b, self.max_agents_len * e)
             f_size = self.args.token_dim
-            new[:, :4] = inputs[:, :4] # agent movement features
-            new[:, 4] = inputs[:, 4]   # agent own feature
-            new[:, 5:(5 + (task_ally_num - 1) * f_size)] = inputs[:, (4 + task_enemy_num * f_size):(t * e - 1)]    # ally features
-            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * f_size)] = inputs[:, 4:(4 + task_enemy_num * f_size)]       # enemy features
+            enemy_feature = self.args.enemy_feature
+            own_feature = self.args.own_feature
+            move_feature = self.args.token_dim - self.args.own_feature
+            new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
+            new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
+            new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * enemy_feature):(t * e - own_feature)]    # ally features
+            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * enemy_feature)] = inputs[:, move_feature:(move_feature + task_enemy_num * enemy_feature)]       # enemy features
             inputs = torch.reshape(new, (b, self.max_agents_len, e))
+
+            if self.args.use_cuda:
+                inputs = inputs.cuda()
         elif env == "simple_spread":
             tmp_inputs[:, :t, :] = inputs
             inputs = tmp_inputs

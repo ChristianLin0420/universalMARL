@@ -3,8 +3,7 @@ from components.action_selectors import REGISTRY as action_REGISTRY
 import torch as th
 
 
-# This multi-agent controller shares parameters between agents
-class BasicMAC:
+class MetaMAC:
     def __init__(self, scheme, groups, args):
         self.n_agents = args.n_agents
         self.args = args
@@ -120,8 +119,8 @@ class BasicMAC:
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, self.args.token_dim)
         elif env == "simple_spread":
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)
-        # elif env == "simple_tag":
-        #     reshaped_obs = arranged_obs.view(-1, (self.args.env_args["n_agents"] + self.args.env_args["n_adverary"] - 1), self.args.token_dim)
+        elif env == "simple_tag":
+            reshaped_obs = arranged_obs.view(-1, (self.args.env_args["n_agents"] + self.args.env_args["n_adverary"] - 1), self.args.token_dim)
 
         inputs.append(reshaped_obs)
         

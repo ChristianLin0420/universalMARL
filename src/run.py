@@ -231,6 +231,10 @@ def run_sequential(args, logger):
 
     return info
 
+def meta_run(args, logger):
+    
+    # Init meta-runner(multiple individual default runner)
+    pass
 
 def args_sanity_check(config, _log):
 

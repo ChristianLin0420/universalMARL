@@ -2,9 +2,11 @@
 
 env: "simple_spread"
 
+parallel: "False"
+
 mixing_networks: [  # algo configs
-  "vdn_beta",
-  "qmix_beta"
+  "vdn",
+  "qmix"
   # "qtran"
 ]
 

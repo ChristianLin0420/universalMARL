@@ -2,9 +2,11 @@
 
 env: "sc2"
 
+parallel: False
+
 mixing_networks: [
-  "vdn_beta",
-  "qmix_beta",
+  "vdn",
+  "qmix",
   # "qtran"
 ]
 
@@ -17,6 +19,10 @@ agent_models: { # agent name / memory usage (upper bound)
 }
 
 # --- SMAC Environment ---
+maps: [
+  "3m"
+]
+
 agents_enemies: {
   "0": [3, 3],           # 3 marines vs 3 marines
   "1": [8, 8],           # 8 marines vs 8 marines

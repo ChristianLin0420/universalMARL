@@ -42,3 +42,6 @@ env_args:
 test_greedy: True
 test_nepisode: 32
 t_max: 100500
+
+action_space_size: 5
+token_dim: 6 
