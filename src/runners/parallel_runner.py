@@ -1,3 +1,4 @@
+from pandas import test
 from envs import REGISTRY as env_REGISTRY
 from functools import partial
 from components.episode_buffer import EpisodeBatch
@@ -37,6 +38,7 @@ class ParallelRunner:
         self.test_returns = []
         self.train_stats = {}
         self.test_stats = {}
+        self.test_win_rate = []
 
         self.log_train_stats_t = -100000
 
@@ -88,6 +90,7 @@ class ParallelRunner:
         all_terminated = False
         episode_returns = [0 for _ in range(self.batch_size)]
         episode_lengths = [0 for _ in range(self.batch_size)]
+        episode_win_rate = [0 for _ in range(self.batch_size)]
         self.mac.init_hidden(batch_size=self.batch_size)
         terminated = [False for _ in range(self.batch_size)]
         envs_not_terminated = [b_idx for b_idx, termed in enumerate(terminated) if not termed]
@@ -141,8 +144,11 @@ class ParallelRunner:
 
                     episode_returns[idx] += data["reward"]
                     episode_lengths[idx] += 1
+                    
                     if not test_mode:
                         self.env_steps_this_run += 1
+                    else:
+                        episode_win_rate[idx] = 1 if data["info"]["battle_won"] else 0
 
                     env_terminated = False
                     if data["terminated"]:
@@ -188,9 +194,12 @@ class ParallelRunner:
 
         cur_returns.extend(episode_returns)
 
+        if test_mode:
+            self.test_win_rate.extend(episode_win_rate)
+
         n_test_runs = max(1, self.args.test_nepisode // self.batch_size) * self.batch_size
         if test_mode and (len(self.test_returns) == n_test_runs):
-            self._log(cur_returns, cur_stats, log_prefix)
+            self._log(cur_returns, cur_stats, log_prefix, self.test_win_rate)
         elif self.t_env - self.log_train_stats_t >= self.args.runner_log_interval:
             self._log(cur_returns, cur_stats, log_prefix)
             if hasattr(self.mac.action_selector, "epsilon"):
@@ -199,7 +208,7 @@ class ParallelRunner:
 
         return self.batch
 
-    def _log(self, returns, stats, prefix):
+    def _log(self, returns, stats, prefix, test_win = None):
         self.logger.log_stat(prefix + "return_mean", np.mean(returns), self.t_env)
         self.logger.log_stat(prefix + "return_std", np.std(returns), self.t_env)
         returns.clear()
@@ -209,6 +218,9 @@ class ParallelRunner:
                 self.logger.log_stat(prefix + k + "_mean" , v/stats["n_episodes"], self.t_env)
         stats.clear()
 
+        if test_win is not None:
+            self.logger.log_stat(prefix + "win_rate_std", np.std(test_win), self.t_env)
+            test_win.clear()
 
 def env_worker(remote, env_fn):
     # Make environment

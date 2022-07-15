@@ -143,6 +143,9 @@ def auto(params):
             u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
             env_config = recursive_dict_update(env_config, u)
 
+        if config_dict["meta"] is not None:
+            pass
+
         for key_a, val_a in agent_models.items():
             agent = { "agent": key_a }
             config_dict = recursive_dict_update(config_dict, agent)
