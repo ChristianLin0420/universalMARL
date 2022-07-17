@@ -32,7 +32,7 @@ for idx in range(len(data_keys)):
     plot_x_axis_title = "Episodes"
     plot_y_axis_title = data_y_label[idx]
 
-    plt.figure(figsize = (7, 12))
+    plt.figure(figsize = (7, 24))
     
     for i, d in enumerate(datas):
         if isinstance(d[data_keys[idx]][0], dict):

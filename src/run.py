@@ -47,7 +47,14 @@ def run(_run, _config, _log):
     logger.setup_sacred(_run)
 
     # Run and train
-    info = run_sequential(args = args, logger = logger)
+    info = {}
+
+    if args.agent == "madt":
+        madt_run(args = args, logger = logger)
+    elif args.agent == "meta":
+        meta_run(args = args, logger = logger)
+    else:
+        info = run_sequential(args = args, logger = logger)
 
     # Clean up after finishing
     print("Exiting Main")
@@ -232,9 +239,57 @@ def run_sequential(args, logger):
     return info
 
 def meta_run(args, logger):
-    
-    # Init meta-runner(multiple individual default runner)
     pass
+
+def madt_run(args, logger):
+    # Init runner so we can get env info
+    runner = r_REGISTRY["madt"](args = args, logger = logger)  
+
+    # Setup multiagent controller here
+    mac = mac_REGISTRY["madt_mac"](args)
+
+    # Give runner the scheme
+    runner.setup(mac = mac)
+
+    # Learner
+    class MADTConfig:
+        # optimization parameters
+        max_epochs = 1000
+        batch_size = 32
+        learning_rate = 5e-4
+        betas = (0.9, 0.95)
+        grad_norm_clip = 0.5
+        weight_decay = 0.1  # only applied on matmul weights
+        # checkpoint settings
+        num_workers = 0  # for DataLoader
+
+        def __init__(self, **kwargs):
+            for k, v in kwargs.items():
+                setattr(self, k, v)
+
+    config = MADTConfig(num_workers = args.batch_size_run, mode = "offline")
+    learner = le_REGISTRY["madt_learner"](mac, args, config, logger)
+
+    if args.use_cuda:
+        learner.cuda()
+
+
+
+    # start training
+    episode = 0
+    last_test_T = -args.test_interval - 1
+    last_log_T = 0
+    model_save_time = 0
+
+    start_time = time.time()
+    last_time = start_time
+
+    info = {}
+
+    logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
+
+    while runner.t_env <= args.t_max:
+        pass
 
 def args_sanity_check(config, _log):
 

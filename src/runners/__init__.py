@@ -8,3 +8,6 @@ REGISTRY["parallel"] = ParallelRunner
 
 from .meta_runner import MetaRunner
 REGISTRY["meta"] = MetaRunner
+
+from .madt_runner import MADTRunner
+REGISTRY["madt"] = MADTRunner
