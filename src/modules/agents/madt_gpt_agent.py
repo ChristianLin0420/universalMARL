@@ -4,10 +4,11 @@ import torch
 from modules.helpers.models.madt_gpt import madtGPT
 
 
-class madtGPT(nn.Module):
-    def __init__(self, args):
+class MADTGPT(nn.Module):
+    def __init__(self, args, model_type):
+        super(MADTGPT, self).__init__()
         self.args = args
-        self.madt = madtGPT()
+        self.madt = madtGPT(args, 0., model_type)
 
     def init_hidden(self):
         if self.args.use_cuda:

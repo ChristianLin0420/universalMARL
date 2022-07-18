@@ -1,12 +1,11 @@
 import torch
 import torch.nn as nn
 
-from torch.nn import functional as F
 from modules.helpers.layers.transformer_decoder_layer import DecoderLayer
 
 class madtGPT(nn.Module):
 
-    def __init__(self, args, mask, drop_prob):
+    def __init__(self, args, drop_prob, model_type):
         super().__init__()
 
         self.args = args
@@ -15,14 +14,14 @@ class madtGPT(nn.Module):
         self.state_size = args.state_size
 
         # input embedding stem
-        self.tok_emb = nn.Embedding(args.vocab_size, args.n_embd)
+        self.tok_emb = nn.Embedding(args.vocab_size, args.emb)
         # self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
-        self.pos_emb = nn.Parameter(torch.zeros(1, args.block_size + 1, args.emb))
-        self.global_pos_emb = nn.Parameter(torch.zeros(1, args.max_timestep + 1, args.emb))
+        self.pos_emb = nn.Parameter(torch.zeros(1, args.context_length * 3 + 1, args.emb))
+        self.global_pos_emb = nn.Parameter(torch.zeros(1, 600 + 1, args.emb))
         self.drop = nn.Dropout(0.)
 
 
-        self.layers = nn.ModuleList([DecoderLayer(emb=args.emb,
+        self.blocks = nn.ModuleList([DecoderLayer(emb=args.emb,
                                                   heads=args.heads,
                                                   mask=True,
                                                   dropout=drop_prob)
@@ -30,9 +29,9 @@ class madtGPT(nn.Module):
 
         # decoder head
         self.ln_f = nn.LayerNorm(args.emb)
-        if self.model_type == 'actor':
+        if model_type == 'actor':
             self.head = nn.Linear(args.emb, args.vocab_size, bias=False)
-        elif self.model_type == 'critic':
+        elif model_type == 'critic':
             self.head = nn.Linear(args.emb, 1, bias=False)
         else:
             raise NotImplementedError
@@ -119,10 +118,8 @@ class madtGPT(nn.Module):
         # rtgs: (batch, context_length, 1)
         # timesteps: (batch, context_length, 1)
 
-        state_embeddings = self.state_encoder(
-            states.reshape(-1, self.state_size).type(torch.float32).contiguous())
-        state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1],
-                                                    self.config.n_embd)  # (batch, block_size, n_embd)
+        state_embeddings = self.state_encoder(states.reshape(-1, self.state_size).type(torch.float32).contiguous())
+        state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.args.emb)  # (batch, block_size, n_embd)
 
         if self.model_type == 'rtgs_state_action':
             rtg_embeddings = self.ret_emb(rtgs.type(torch.float32))
@@ -131,7 +128,7 @@ class madtGPT(nn.Module):
                 pre_actions.type(torch.long).squeeze(-1))  # (batch, block_size, n_embd)
 
             token_embeddings = torch.zeros(
-                (states.shape[0], states.shape[1] * 3, self.config.n_embd), dtype=torch.float32,
+                (states.shape[0], states.shape[1] * 3, self.args.emb), dtype=torch.float32,
                 device=state_embeddings.device)
             token_embeddings[:, ::3, :] = rtg_embeddings
             token_embeddings[:, 1::3, :] = state_embeddings
@@ -142,7 +139,7 @@ class madtGPT(nn.Module):
                 pre_actions.type(torch.long).squeeze(-1))  # (batch, block_size, n_embd)
 
             token_embeddings = torch.zeros(
-                (states.shape[0], states.shape[1] * 2, self.config.n_embd), dtype=torch.float32,
+                (states.shape[0], states.shape[1] * 2, self.args.emb), dtype=torch.float32,
                 device=state_embeddings.device)
             token_embeddings[:, ::2, :] = state_embeddings
             token_embeddings[:, 1::2, :] = action_embeddings
@@ -155,13 +152,17 @@ class madtGPT(nn.Module):
 
         batch_size = states.shape[0]
         all_global_pos_emb = torch.repeat_interleave(self.global_pos_emb, batch_size, dim=0)
-        global_pos_emb = torch.gather(all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.config.n_embd, dim=-1))
+        global_pos_emb = torch.gather(all_global_pos_emb, 1, torch.repeat_interleave(timesteps, self.args.emb, dim=-1))
         global_pos_emb = torch.repeat_interleave(global_pos_emb, num_elements, dim=1)
         context_pos_emb = self.pos_emb[:, :token_embeddings.shape[1], :]
         position_embeddings = global_pos_emb + context_pos_emb
 
         x = self.drop(token_embeddings + position_embeddings)
-        x = self.blocks(x)
+
+        for layer in self.blocks:
+            x = layer(x, None, None, None)
+
+        # x = self.blocks(x)
         x = self.ln_f(x)
         logits = self.head(x)
 

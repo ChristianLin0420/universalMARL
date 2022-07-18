@@ -139,7 +139,7 @@ def get_config():
     parser.add_argument("--model_dir", type=str, default=None, help="by default None. set the path to pretrained model.")
 
     # StarCraftII environment
-    parser.add_argument('--map_name', type=str, default='3s_vs_4z', help="Which smac map to run on")
+    parser.add_argument('--map_name', type=str, default='8m', help="Which smac map to run on")
     parser.add_argument("--add_move_state", action='store_true', default=False)
     parser.add_argument("--add_local_obs", action='store_true', default=False)
     parser.add_argument("--add_distance_state", action='store_true', default=False)

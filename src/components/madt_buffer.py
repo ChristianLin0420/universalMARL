@@ -3,7 +3,7 @@ import numpy as np
 import copy, glob
 from torch.utils.data import Dataset
 
-from utils import padding_obs, padding_ava
+from components.utils import padding_obs, padding_ava
 
 class StateActionReturnDataset(Dataset):
 

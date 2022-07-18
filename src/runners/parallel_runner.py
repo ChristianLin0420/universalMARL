@@ -6,7 +6,7 @@ from multiprocessing import Pipe, Process
 import numpy as np
 import torch as th
 
-from utils import CloudpickleWrapper
+from runners.wrappers import CloudpickleWrapper
 
 
 # Based (very) heavily on SubprocVecEnv from OpenAI Baselines

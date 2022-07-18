@@ -269,11 +269,9 @@ def madt_run(args, logger):
 
     config = MADTConfig(num_workers = args.batch_size_run, mode = "offline")
     learner = le_REGISTRY["madt_learner"](mac, args, config, logger)
-
+    
     if args.use_cuda:
         learner.cuda()
-
-
 
     # start training
     episode = 0
@@ -284,12 +282,18 @@ def madt_run(args, logger):
     start_time = time.time()
     last_time = start_time
 
-    info = {}
-
     logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
 
-    while runner.t_env <= args.t_max:
-        pass
+    # while runner.t_env <= args.t_max:
+    #     pass
+
+    for i in range(1):
+        offline_dataset = runner.run()
+        offline_actor_loss, offline_critic_loss, _, __, ___ = learner.train(offline_dataset, args.offline_train_critic)
+        print("offline epoch: %s, offline_actor_loss: %s, offline_critic_loss: %s" % (i, offline_actor_loss, offline_critic_loss))
+
+    runner.close_env()
+    logger.console_logger.info("Finished Training")
 
 def args_sanity_check(config, _log):
 

@@ -7,6 +7,7 @@ import torch as th
 class MADTMAC:
     def __init__(self, args):
         self.args = args
+        self._build_agents()
 
     def forward(self, o, pre_a, rtg, t):
         return self.actor(o, pre_a, rtg, t)
@@ -30,6 +31,6 @@ class MADTMAC:
         self.actor.load_state_dict(th.load("{}/actor.th".format(path), map_location=lambda storage, loc: storage))
         self.critic.load_state_dict(th.load("{}/critic.th".format(path), map_location=lambda storage, loc: storage))
 
-    def _build_agents(self, input_shape):
-        self.actor = agent_REGISTRY[self.args.agent](input_shape, self.args)
-        self.critic = agent_REGISTRY[self.args.agent](input_shape, self.args)
+    def _build_agents(self):
+        self.actor = agent_REGISTRY[self.args.agent](self.args, "actor")
+        self.critic = agent_REGISTRY[self.args.agent](self.args, "critic")

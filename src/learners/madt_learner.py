@@ -13,14 +13,15 @@ class MADTLearner:
         self.args = args
         self.mac = mac
         self.logger = logger
+        self.config = config
 
         # take over whatever gpus are on the system
         self.device = args.device
         self.raw_model = self.model.module if hasattr(self.model, "module") else self.model
-        self.optimizer = self.raw_model.configure_optimizers(config, config.learning_rate)
+        self.optimizer = self.raw_model.madt.configure_optimizers(config, config.learning_rate)
 
         self.raw_critic_model = self.critic_model.module if hasattr(self.critic_model, "module") else self.critic_model
-        self.critic_optimizer = self.raw_critic_model.configure_optimizers(config, config.learning_rate * 10)
+        self.critic_optimizer = self.raw_critic_model.madt.configure_optimizers(config, config.learning_rate * 10)
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
@@ -63,6 +64,13 @@ class MADTLearner:
                 next_s = next_s.to(self.device)
                 next_rtg = next_rtg.to(self.device)
                 done = done.to(self.device)
+
+                print("s: {}".format(s.size()))
+                print("o: {}".format(o.size()))
+                print("a: {}".format(a.size()))
+                print("r: {}".format(r.size()))
+                print("pre_a: {}".format(pre_a.size()))
+                print("t: {}".format(t.size()))
 
                 # update actor
                 with torch.set_grad_enabled(True):

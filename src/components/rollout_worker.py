@@ -2,7 +2,7 @@ import copy
 
 import torch
 import numpy as np
-from utils import sample, padding_obs, padding_ava
+from components.utils import sample, padding_obs, padding_ava
 
 
 class RolloutWorker:

@@ -41,7 +41,7 @@ optim_eps: 0.00001 # RMSProp epsilon
 grad_norm_clip: 10 # Reduce magnitude of gradients above this L2 norm
 
 # --- Agent parameters ---
-agent: "rnn" # Default rnn agent
+agent: "madt" # Default rnn agent
 rnn_hidden_dim: 32 # Size of hidden state for default rnn agent
 obs_agent_id: True # Include the agent's one_hot id in the observation
 obs_last_action: True # Include the agent's last action (one_hot) in the observation
@@ -54,9 +54,20 @@ max_len: 128
 emb: 32 # embedding dimension of transformer
 heads: 3 # head number of transformer
 depth: 2 # block number of transformer
-ally_num: 5 # number of ally (5m_vs_6m)
-enemy_num: 6 # number of enemy (5m_vs_6m)
+ally_num: 8 # number of ally (5m_vs_6m)
+enemy_num: 8 # number of enemy (5m_vs_6m)
 
 # --- Experiment running params ---
 repeat_id: 1
 label: "default_label"
+
+# --- MADT running params ---
+context_length: 1
+offline_map_lists: ['3s_vs_4z', '2m_vs_1z', '3m', '2s_vs_1sc', '3s_vs_3z']
+offline_train_critic: True
+eval_episodes: 1
+model_type: "state_only"
+state_size: 79
+vocab_size: 99
+action_size: 10
+block_size: 1
