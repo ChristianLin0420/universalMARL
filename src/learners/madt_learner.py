@@ -65,12 +65,12 @@ class MADTLearner:
                 next_rtg = next_rtg.to(self.device)
                 done = done.to(self.device)
 
-                print("s: {}".format(s.size()))
-                print("o: {}".format(o.size()))
-                print("a: {}".format(a.size()))
-                print("r: {}".format(r.size()))
-                print("pre_a: {}".format(pre_a.size()))
-                print("t: {}".format(t.size()))
+                # print("s: {}".format(s.size()))
+                # print("o: {}".format(o.size()))
+                # print("a: {}".format(a.size()))
+                # print("r: {}".format(r.size()))
+                # print("pre_a: {}".format(pre_a.size()))
+                # print("t: {}".format(t.size()))
 
                 # update actor
                 with torch.set_grad_enabled(True):

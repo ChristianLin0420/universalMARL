@@ -254,7 +254,7 @@ def madt_run(args, logger):
     # Learner
     class MADTConfig:
         # optimization parameters
-        max_epochs = 1000
+        max_epochs = 1
         batch_size = 32
         learning_rate = 5e-4
         betas = (0.9, 0.95)
@@ -284,10 +284,7 @@ def madt_run(args, logger):
 
     logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
 
-    # while runner.t_env <= args.t_max:
-    #     pass
-
-    for i in range(1):
+    for i in range(3):
         offline_dataset = runner.run()
         offline_actor_loss, offline_critic_loss, _, __, ___ = learner.train(offline_dataset, args.offline_train_critic)
         print("offline epoch: %s, offline_actor_loss: %s, offline_critic_loss: %s" % (i, offline_actor_loss, offline_critic_loss))

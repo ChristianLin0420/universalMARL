@@ -11,13 +11,13 @@ class madtGPT(nn.Module):
         self.args = args
 
         self.model_type = args.model_type
-        self.state_size = args.state_size
+        self.state_size = args.state_size if model_type == 'actor' else args.vocab_size
 
         # input embedding stem
         self.tok_emb = nn.Embedding(args.vocab_size, args.emb)
         # self.pos_emb = nn.Parameter(torch.zeros(1, config.block_size, config.n_embd))
         self.pos_emb = nn.Parameter(torch.zeros(1, args.context_length * 3 + 1, args.emb))
-        self.global_pos_emb = nn.Parameter(torch.zeros(1, 600 + 1, args.emb))
+        self.global_pos_emb = nn.Parameter(torch.zeros(1, 700 + 1, args.emb))
         self.drop = nn.Dropout(0.)
 
 
@@ -30,7 +30,7 @@ class madtGPT(nn.Module):
         # decoder head
         self.ln_f = nn.LayerNorm(args.emb)
         if model_type == 'actor':
-            self.head = nn.Linear(args.emb, args.vocab_size, bias=False)
+            self.head = nn.Linear(args.emb, args.action_size, bias=False)
         elif model_type == 'critic':
             self.head = nn.Linear(args.emb, 1, bias=False)
         else:
@@ -45,7 +45,7 @@ class madtGPT(nn.Module):
 
         self.mask_emb = nn.Sequential(nn.Linear(1, args.emb), nn.Tanh())
 
-        self.action_embeddings = nn.Sequential(nn.Embedding(args.vocab_size, args.emb), nn.Tanh())
+        self.action_embeddings = nn.Sequential(nn.Embedding(args.action_size, args.emb), nn.Tanh())
         nn.init.normal_(self.action_embeddings[0].weight, mean=0.0, std=0.02)
 
     def get_block_size(self):
@@ -117,6 +117,10 @@ class madtGPT(nn.Module):
         # targets: (batch, context_length, 1)
         # rtgs: (batch, context_length, 1)
         # timesteps: (batch, context_length, 1)
+
+        # print("state_size: {}".format(states.size()))
+        # print("pre_actions: {}".format(pre_actions.size()))
+        # print("rtgs: {}".format(rtgs.size()))
 
         state_embeddings = self.state_encoder(states.reshape(-1, self.state_size).type(torch.float32).contiguous())
         state_embeddings = state_embeddings.reshape(states.shape[0], states.shape[1], self.args.emb)  # (batch, block_size, n_embd)
