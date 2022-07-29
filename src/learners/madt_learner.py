@@ -25,10 +25,12 @@ class MADTLearner:
 
         self.log_stats_t = -self.args.learner_log_interval - 1
 
-    def train(self, dataset, t_env, train_critic = True):
+    def train(self, dataset, t_env, train_critic = True, offline = True):
         model, critic_model, config = self.raw_model, self.raw_critic_model, self.config
         target_model = copy.deepcopy(model)
         target_model.train(False)
+
+        cur_t_env = t_env
 
         def run_epoch():
             model.train(True)
@@ -64,6 +66,8 @@ class MADTLearner:
                 next_s = next_s.to(self.device)
                 next_rtg = next_rtg.to(self.device)
                 done = done.to(self.device)
+
+                cur_t_env += 1
 
                 # print("s: {}".format(s.size()))
                 # print("o: {}".format(o.size()))
@@ -135,31 +139,36 @@ class MADTLearner:
 
                 # report progress
                 pbar.set_description(f"epoch {epoch + 1} iter {it}: train loss {loss.item():.5f}.")
+
+                prefix = "offline_"
+                if not offline:
+                    prefix = "online_"
+
+                if cur_t_env - self.log_stats_t >= self.args.learner_log_interval:
+                    self.logger.log_stat("{}actor_loss".format(prefix), actor_loss_ret, t_env)
+                    self.logger.log_stat("{}critic_loss".format(prefix), critic_loss_ret, t_env)
+                    self.logger.log_stat("{}entropy".format(prefix), entropy, t_env)
+                    self.logger.log_stat("{}confidence".format(prefix), confidence, t_env)
+                    self.log_stats_t = cur_t_env
+            
             return loss_info, critic_loss_info, entropy_info, ratio_info, confidence_info
 
         actor_loss_ret, critic_loss_ret, entropy, ratio, confidence = 0., 0., 0., 0., 0.
 
         for epoch in range(config.max_epochs):
             actor_loss_ret, critic_loss_ret, entropy, ratio, confidence = run_epoch()
-
-        if t_env - self.log_stats_t >= self.args.learner_log_interval:
-            self.logger.log_stat("actor_loss", actor_loss_ret, t_env)
-            self.logger.log_stat("critic_loss", critic_loss_ret, t_env)
-            self.logger.log_stat("entropy", entropy, t_env)
-            self.logger.log_stat("confidence", confidence, t_env)
-            self.log_stats_t = t_env
         
-        return actor_loss_ret, critic_loss_ret, entropy, ratio, confidence
+        return cur_t_env
 
     def cuda(self):
         self.mac.cuda()
-        self.target_mac.cuda()
 
     def save_models(self, path):
         self.mac.save_models(path)
-        torch.save(self.optimiser.state_dict(), "{}/opt.th".format(path))
+        torch.save(self.optimizer.state_dict(), "{}/actor_opt.th".format(path))
+        torch.save(self.critic_optimizer.state_dict(), "{}/critic_opt.th".format(path))
 
     def load_models(self, path):
         self.mac.load_models(path)
-        # Not quite right but I don't want to save target networks
-        self.target_mac.load_models(path)
+        self.optimiser.load_state_dict(torch.load("{}/actor_opt.th".format(path), map_location=lambda storage, loc: storage))
+        self.critic_optimizer.load_state_dict(torch.load("{}/critic_opt.th".format(path), map_location=lambda storage, loc: storage))

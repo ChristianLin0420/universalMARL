@@ -64,8 +64,6 @@ label: "default_label"
 # --- MADT running params ---
 context_length: 1
 offline_map_lists: ['3s_vs_4z', '2m_vs_1z', '3m', '2s_vs_1sc', '3s_vs_3z']
-offline_train_critic: True
-eval_episodes: 1
 model_type: "state_only"
 state_size: 79
 vocab_size: 99

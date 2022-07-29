@@ -267,27 +267,72 @@ def madt_run(args, logger):
             for k, v in kwargs.items():
                 setattr(self, k, v)
 
-    config = MADTConfig(num_workers = args.batch_size_run, mode = "offline")
-    learner = le_REGISTRY["madt_learner"](mac, args, config, logger)
+    offline_config = MADTConfig(num_workers = args.batch_size_run, mode = "offline")
+    offline_learner = le_REGISTRY["madt_learner"](mac, args, offline_config, logger)
+    offline_dataset = runner.sample_dataset(False)
     
     if args.use_cuda:
-        learner.cuda()
+        offline_learner.cuda()
 
     # start training
     episode = 0
     last_test_T = -args.test_interval - 1
-    last_log_T = 0
     model_save_time = 0
 
     start_time = time.time()
     last_time = start_time
 
     logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
+    save_path = ""
+    
+    # offline training
+    for i in range(10):
+        _ = offline_learner.train(offline_dataset, True, True)
 
-    for i in range(3):
-        offline_dataset = runner.run()
-        offline_actor_loss, offline_critic_loss, _, __, ___ = learner.train(offline_dataset, args.offline_train_critic)
-        print("offline epoch: %s, offline_actor_loss: %s, offline_critic_loss: %s" % (i, offline_actor_loss, offline_critic_loss))
+        # save the models
+        save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, "offline")
+
+        os.makedirs(save_path, exist_ok = True)
+        logger.console_logger.info("Saving models to {}".format(save_path))
+
+        offline_learner.save_models(save_path)
+
+
+    # online training 
+    online_config = MADTConfig(num_workers = args.batch_size_run, mode = "online")
+    online_learner = le_REGISTRY["madt_learner"](mac, args, online_config, logger)
+    online_learner.load_models(save_path)
+    
+    if args.use_cuda:
+        online_learner.cuda()
+
+    while runner.t_env <= args.t_max:
+        
+        runner.run(test_mode = False)
+
+        online_dataset = runner.sample_dataset()
+        runner.t_env = online_learner.train(online_dataset, True, False)
+
+        if (runner.t_env - last_test_T) / args.test_interval >= 1.0:
+            logger.console_logger.info("t_env: {} / {}".format(runner.t_env, args.t_max))
+            logger.console_logger.info("Estimated time left: {}. Time passed: {}".format(
+                time_left(last_time, last_test_T, runner.t_env, args.t_max), time_str(time.time() - start_time)))
+
+            last_time = time.time()
+            last_test_T = runner.t_env
+
+            runner.run(test_mode = True)
+
+        if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
+            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
+
+            os.makedirs(save_path, exist_ok = True)
+            logger.console_logger.info("Saving models to {}".format(save_path))
+
+            online_learner.save_models(save_path)
+            model_save_time = runner.t_env
+
+        episode += args.batch_size_run
 
     runner.close_env()
     logger.console_logger.info("Finished Training")

@@ -6,33 +6,15 @@ from components.rollout_worker import RolloutWorker
 
 from envs import REGISTRY as env_REGISTRY
 
-from smac.env import StarCraft2Env
 from envs.smac_config import get_map_params
-from config.algs.madt_config import get_config
+from components.madt_config import get_config
 from runners.wrappers import ShareSubprocVecEnv
-
-
-# def make_eval_env(all_args, n_threads=1):
-#     def get_env_fn(rank):
-#         def init_env():
-#             if all_args.env_name == "StarCraft2":
-#                 env = StarCraft2Env(all_args)
-#             else:
-#                 print("Can not support the " + all_args.env_name + "environment.")
-#                 raise NotImplementedError
-#             env.seed(all_args.seed * 50000 + rank * 10000)
-#             return env
-
-#         return init_env
-
-#     return ShareSubprocVecEnv([get_env_fn(i) for i in range(n_threads)])
 
 
 class Env:
     def __init__(self, n_threads = 1, args = None):
         parser = get_config()
         all_args = parser.parse_known_args()[0]
-        # self.real_env = make_eval_env(all_args, n_threads)
         self.real_env = ShareSubprocVecEnv([env_REGISTRY[args.env] for _ in range(n_threads)])
         self.num_agents = get_map_params(all_args.map_name)["n_agents"]
         self.max_timestep = get_map_params(all_args.map_name)["limit"]
@@ -46,17 +28,19 @@ class MADTRunner:
         self.logger = logger
         self.batch_size = self.args.batch_size_run
 
-        self.eval_env = Env(args.eval_episodes, args)
-        # self.online_train_env = Env(args.batch_size_run)     
+        self.eval_env = Env(args.batch_size_run, args)
+        self.online_train_env = Env(args.batch_size)     
 
         self.log_train_stats_t = -100000
+
+        self.target_rtgs = 20.
 
     def setup(self, mac):
 
         block_size = self.args.context_length * 3
-        global_obs_dim = 99
-        local_obs_dim = 79
-        action_dim = 10
+        global_obs_dim = self.args.vocab_size
+        local_obs_dim = self.args.state_size
+        action_dim = self.args.action_size
 
         self.mac = mac
         self.buffer = ReplayBuffer(block_size, global_obs_dim, local_obs_dim, action_dim)
@@ -72,18 +56,38 @@ class MADTRunner:
         offline_dataset = self.buffer.sample()
         offline_dataset.stats()
 
+        self.rollout_worker = RolloutWorker(mac.actor, mac.critic, self.buffer, global_obs_dim, local_obs_dim, action_dim)
+
     def close_env(self):
         self.eval_env.real_env.close()
-        # self.online_train_env.close()
+        self.online_train_env.close()
 
     def reset(self):
         self.t = 0
         self.env_steps_this_run = 0
 
+    def sample_dataset(self):
+        dataset = self.buffer.sample()
+        dataset.stats()
+
+        return dataset
+
     def run(self, test_mode = False):
-        offline_dataset = self.buffer.sample()
-        offline_dataset.stats()
-        return offline_dataset
+
+        cur_stats = {}
+
+        if test_mode:
+            returns, battle_won = self.rollout_worker.rollout(self.eval_env, self.target_rtgs, train=False)
+            cur_stats["battle_won"] = np.mean(battle_won)
+
+            self._log(returns, cur_stats, "test_", battle_won)
+        else:
+            returns, battle_won = self.rollout_worker.rollout(self.online_train_env, self.target_rtgs, train=True)
+            cur_stats["battle_won"] = np.mean(battle_won)
+            
+            if self.t_env - self.log_train_stats_t >= self.args.runner_log_interval:
+                self._log(returns, cur_stats, "")
+                self.log_train_stats_t = self.t_env
 
     def _log(self, returns, stats, prefix, test_win = None):
         self.logger.log_stat(prefix + "return_mean", np.mean(returns), self.t_env)

@@ -35,7 +35,7 @@ log_interval: 20000
 runner_log_interval: 20000
 t_max: 10050000
 test_interval: 20000
-test_nepisode: 24
+test_nepisode: 192
 test_greedy: True
 
 action_space_size: 6

@@ -4,9 +4,9 @@ import torch
 from modules.helpers.models.madt_gpt import madtGPT
 
 
-class MADTGPT(nn.Module):
+class MADTGPTAgent(nn.Module):
     def __init__(self, args, model_type):
-        super(MADTGPT, self).__init__()
+        super(MADTGPTAgent, self).__init__()
         self.args = args
         self.madt = madtGPT(args, 0., model_type)
 

@@ -23,5 +23,8 @@ REGISTRY['axial_transformer'] = AxialTransformerAgent
 
 TRANSFORMERbasedAgent = ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer']
 
-from .madt_gpt_agent import MADTGPT
-REGISTRY['madt'] = MADTGPT
+from .madt_gpt_agent import MADTGPTAgent
+REGISTRY['madt'] = MADTGPTAgent
+
+from .rode_agent import RODEAgent
+REGISTRY["rode"] = RODEAgent
