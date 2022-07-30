@@ -8,7 +8,7 @@ import torch
 from .encoder import Encoder
 from .decoder import Decoder
 
-from modules.helpers.embedding.random_layer import RandomLayer
+# from modules.helpers.embedding.random_layer import RandomLayer
 
 class Transformer(nn.Module):
 
@@ -35,19 +35,11 @@ class Transformer(nn.Module):
         x = self.encoder(tokens, mask)
 
         # reward token/hidden token
-        # latent_size = 1
         final_size = self.args.max_agents_len + 1
-
-        # if self.d_tokens is None:
-        #     self.d_tokens = RandomLayer(self.args).get_random_vector(512, 50, 64)
-
-        # d = self.d_tokens[:b, :latent_size, :e]
 
         if self.dummy:
             x = self.decoder(tokens, x, mask, mask, self.args.max_agents_len)
         else:
-            # x = self.decoder(d, x, mask, mask, t)
-            # final_size = t + 1
             x = self.decoder(tokens, x, mask, mask, t)
             final_size = t
 

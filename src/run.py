@@ -49,9 +49,7 @@ def run(_run, _config, _log):
     # Run and train
     info = {}
 
-    if args.agent == "madt":
-        madt_run(args = args, logger = logger)
-    elif args.agent == "meta":
+    if args.agent == "meta":
         meta_run(args = args, logger = logger)
     else:
         info = run_sequential(args = args, logger = logger)
@@ -240,102 +238,6 @@ def run_sequential(args, logger):
 
 def meta_run(args, logger):
     pass
-
-def madt_run(args, logger):
-    # Init runner so we can get env info
-    runner = r_REGISTRY["madt"](args = args, logger = logger)  
-
-    # Setup multiagent controller here
-    mac = mac_REGISTRY["madt_mac"](args)
-
-    # Give runner the scheme
-    runner.setup(mac = mac)
-
-    # Learner
-    class MADTConfig:
-        # optimization parameters
-        max_epochs = 1
-        batch_size = 32
-        learning_rate = 5e-4
-        betas = (0.9, 0.95)
-        grad_norm_clip = 0.5
-        weight_decay = 0.1  # only applied on matmul weights
-        # checkpoint settings
-        num_workers = 0  # for DataLoader
-
-        def __init__(self, **kwargs):
-            for k, v in kwargs.items():
-                setattr(self, k, v)
-
-    offline_config = MADTConfig(num_workers = args.batch_size_run, mode = "offline")
-    offline_learner = le_REGISTRY["madt_learner"](mac, args, offline_config, logger)
-    offline_dataset = runner.sample_dataset(False)
-    
-    if args.use_cuda:
-        offline_learner.cuda()
-
-    # start training
-    episode = 0
-    last_test_T = -args.test_interval - 1
-    model_save_time = 0
-
-    start_time = time.time()
-    last_time = start_time
-
-    logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
-    save_path = ""
-    
-    # offline training
-    for i in range(10):
-        _ = offline_learner.train(offline_dataset, True, True)
-
-        # save the models
-        save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, "offline")
-
-        os.makedirs(save_path, exist_ok = True)
-        logger.console_logger.info("Saving models to {}".format(save_path))
-
-        offline_learner.save_models(save_path)
-
-
-    # online training 
-    online_config = MADTConfig(num_workers = args.batch_size_run, mode = "online")
-    online_learner = le_REGISTRY["madt_learner"](mac, args, online_config, logger)
-    online_learner.load_models(save_path)
-    
-    if args.use_cuda:
-        online_learner.cuda()
-
-    while runner.t_env <= args.t_max:
-        
-        runner.run(test_mode = False)
-
-        online_dataset = runner.sample_dataset()
-        runner.t_env = online_learner.train(online_dataset, True, False)
-
-        if (runner.t_env - last_test_T) / args.test_interval >= 1.0:
-            logger.console_logger.info("t_env: {} / {}".format(runner.t_env, args.t_max))
-            logger.console_logger.info("Estimated time left: {}. Time passed: {}".format(
-                time_left(last_time, last_test_T, runner.t_env, args.t_max), time_str(time.time() - start_time)))
-
-            last_time = time.time()
-            last_test_T = runner.t_env
-
-            runner.run(test_mode = True)
-
-        if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
-            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
-
-            os.makedirs(save_path, exist_ok = True)
-            logger.console_logger.info("Saving models to {}".format(save_path))
-
-            online_learner.save_models(save_path)
-            model_save_time = runner.t_env
-
-        episode += args.batch_size_run
-
-    runner.close_env()
-    logger.console_logger.info("Finished Training")
 
 def args_sanity_check(config, _log):
 

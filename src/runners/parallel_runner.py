@@ -6,8 +6,6 @@ from multiprocessing import Pipe, Process
 import numpy as np
 import torch as th
 
-from runners.wrappers import CloudpickleWrapper
-
 
 # Based (very) heavily on SubprocVecEnv from OpenAI Baselines
 # https://github.com/openai/baselines/blob/master/baselines/common/vec_env/subproc_vec_env.py
@@ -268,3 +266,18 @@ def env_worker(remote, env_fn):
         else:
             raise NotImplementedError
 
+class CloudpickleWrapper(object):
+    """
+    Uses cloudpickle to serialize contents (otherwise multiprocessing tries to use pickle)
+    """
+
+    def __init__(self, x):
+        self.x = x
+
+    def __getstate__(self):
+        import cloudpickle
+        return cloudpickle.dumps(self.x)
+
+    def __setstate__(self, ob):
+        import pickle
+        self.x = pickle.loads(ob)

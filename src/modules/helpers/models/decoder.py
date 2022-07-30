@@ -48,3 +48,5 @@ class Decoder(nn.Module):
 
         for layer in self.layers:
             d = layer(d, enc_src, trg_mask, src_mask)
+
+        return d

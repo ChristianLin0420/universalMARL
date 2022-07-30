@@ -123,7 +123,6 @@ def auto(params):
     mixing_networks = ex_config["mixing_networks"]
     agent_models = ex_config["agent_models"]
     scenarios = ex_config["scenarios"] if config_dict["env"] == "simple_spread" else ex_config["agents_enemies"]
-    map_names = ex_config["maps"]
 
     cuda_available = th.cuda.is_available()
     initialization = True
@@ -136,7 +135,8 @@ def auto(params):
         env_config = _get_config(params, "", "envs", config_dict["env"] + parallel_env)
 
         if config_dict["env"] == "sc2":
-            map_name = map_names[0]
+            map_name = "3m" if int(key_s) == 0 else "8m"
+#             map_name = "5m_vs_6m" if int(key_s) == 0 else "8m_vs_9m"
             map_c = get_smac_map_config(map_name)
             env_config = recursive_dict_update(env_config, map_c)
         elif config_dict["env"] == "simple_spread":

@@ -6,25 +6,21 @@ parallel: False
 
 mixing_networks: [
   "vdn",
-  "qmix",
-  # "qtran"
+  # "qmix",
+  # "qtran",
 ]
 
 agent_models: { # agent name / memory usage (upper bound)
-  "rnn" :                 [1400, 1400], 
-  "updet" :               [1600, 3500],
+  # "rnn" :                 [1400, 1400], 
+  # "updet" :               [1600, 3500],
   "vanilla_transformer" : [3000, 12000],
-  "dummy_transformer" :   [7000, 18000],
-  "dummy_updet":          [3000, 5000]
+  # "dummy_transformer" :   [7000, 18000],
+  # "dummy_updet":          [3000, 5000]
 }
 
 # --- SMAC Environment ---
-maps: [
-  "3m"
-]
-
 agents_enemies: {
   "0": [3, 3],           # 3 marines vs 3 marines
-  "1": [8, 8],           # 8 marines vs 8 marines
-  "2": [8, 8]
+  # "1": [8, 8],           # 8 marines vs 8 marines
+  # "2": [8, 8]
 }
