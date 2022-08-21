@@ -5,6 +5,3 @@ REGISTRY["episode"] = EpisodeRunner
 
 from .parallel_runner import ParallelRunner
 REGISTRY["parallel"] = ParallelRunner
-
-from .meta_runner import MetaRunner
-REGISTRY["meta"] = MetaRunner

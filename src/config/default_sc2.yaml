@@ -57,6 +57,10 @@ depth: 2 # block number of transformer
 ally_num: 3 # number of ally (5m_vs_6m)
 enemy_num: 3 # number of enemy (5m_vs_6m)
 
+max_encoder_size: 8
+max_decoder_size: 8
+random_encoder_input: True
+
 # --- Experiment running params ---
 repeat_id: 1
 label: "default_label"

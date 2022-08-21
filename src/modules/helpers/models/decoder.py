@@ -19,32 +19,11 @@ class Decoder(nn.Module):
                                      for _ in range(args.depth)])
 
 
-    def forward(self, d, enc_src, trg_mask, src_mask, len):
+    def forward(self, d, enc_src, trg_mask, src_mask, len, position_emb = True):
 
-        # if self.dummy:
-        #     p_emb = self.posit_emb(d)
-        #     d = d + p_emb
-
-        #     for layer in self.layers:
-        #         d = layer(d, enc_src, trg_mask, src_mask)
-
-        #     return d
-        # else:
-        #     trg = d
-
-        #     for i in range(len):
-        #         p_emb = self.posit_emb(trg)
-        #         tmp = trg[:, -1:, :] + p_emb[-1:, :]
-
-        #         for layer in self.layers:
-        #             tmp = layer(tmp[:, -1:, :], enc_src, trg_mask, src_mask)
-
-        #         trg = torch.cat((trg, tmp[:, -1:, :]), 1)
-        #     # print("Decoder output dimension: {}".format(trg.size()))
-        #     return trg
-
-        p_emb = self.posit_emb(d)
-        d = d + p_emb
+        if position_emb:
+            p_emb = self.posit_emb(d)
+            d = d + p_emb
 
         for layer in self.layers:
             d = layer(d, enc_src, trg_mask, src_mask)

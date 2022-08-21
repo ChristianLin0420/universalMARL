@@ -49,6 +49,10 @@ obs_last_action: True # Include the agent's last action (one_hot) in the observa
 action_space_size: 6
 max_agents_len: 20
 
+max_encoder_size: 8
+max_decoder_size: 8
+random_encoder_input: True
+
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
 max_len: 128

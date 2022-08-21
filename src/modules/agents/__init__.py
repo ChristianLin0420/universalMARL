@@ -15,10 +15,13 @@ REGISTRY['vanilla_transformer'] = VanillaTransformer
 from .dummy_transformer_agent import DummyTransformer
 REGISTRY['dummy_transformer'] = DummyTransformer
 
+from .transfermer_agent import Transfermer
+REGISTRY['transfermer'] = Transfermer
+
 from .transformer_agg_agent import TransformerAggregationAgent
 REGISTRY['transformer_aggregation'] = TransformerAggregationAgent
 
 from .axial_transformer_agent import AxialTransformerAgent
 REGISTRY['axial_transformer'] = AxialTransformerAgent
 
-TRANSFORMERbasedAgent = ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer']
+TRANSFORMERbasedAgent = ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer', 'transfermer']

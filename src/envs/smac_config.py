@@ -1,4 +1,6 @@
 
+
+
 smac_maps_features = {
     "3m":           [4, 5, 5, 1],      # feature size of action_move/enemy/ally/own
     "8m":           [4, 5, 5, 1],
@@ -33,6 +35,44 @@ smac_maps_entities = {
     "10m_vs_11m":   [10, 11]
 }
 
+''' 
+Enemy information:
+
+entity property: 
+    self(0), ally(1), enemy(2)
+
+entity role identification:
+    marine: 0
+    stalkers: 1
+    zealots: 2
+    colossus: 3
+    medivac: 4
+    marauder: 5
+    spine crawler: 6
+    hydralisks: 7
+    zerglines: 8
+    banelings: 9
+'''
+
+entity_role = {
+    "marine": 0,
+    "stalkers": 1,
+    "zealots": 2,
+    "colossus": 3,
+    "medivac": 4,
+    "marauder": 5,
+    "spine_crawler": 6,
+    "hydralisks": 7,
+    "zerglines": 8,
+    "banelings": 9
+}
+
+entity_identity = {
+    "self": 0, 
+    "ally": 1, 
+    "enemy": 2
+}
+
 def get_smac_map_config(env_name):
 
     assert smac_maps_entities[env_name] is not None
@@ -40,13 +80,27 @@ def get_smac_map_config(env_name):
     return {
         "ally_num": smac_maps_entities[env_name][0], 
         "enemy_num": smac_maps_entities[env_name][1],
-        "enemy_feature": smac_maps_features[env_name][1],
-        "own_feature": smac_maps_features[env_name][3],
-        "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+        "enemy_feature": 7,
+        "own_feature": 7,
+        "token_dim": 7,
         "env_args": {
             "map_name": env_name
         }
     }
+
+    # return {
+    #     "ally_num": smac_maps_entities[env_name][0], 
+    #     "enemy_num": smac_maps_entities[env_name][1],
+    #     "enemy_feature": smac_maps_features[env_name][1],
+    #     "own_feature": smac_maps_features[env_name][3],
+    #     "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+    #     "env_args": {
+    #         "map_name": env_name
+    #     }
+    # }
+
+def get_entity_extra_information(identity, role):
+    return [entity_identity[identity], entity_role[role]]
 
 # from __future__ import absolute_import
 # from __future__ import division
