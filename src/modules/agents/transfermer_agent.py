@@ -14,8 +14,8 @@ class Transfermer(nn.Module):
         self.encoder_query = torch.unsqueeze(torch.rand(args.max_encoder_size, args.token_dim), 0)
         self.decoder_query = torch.unsqueeze(torch.rand(6, args.token_dim), 0)
 
-        self.encoder_query = torch.repeat_interleave(self.encoder_query, self.args.ally_num, dim = 0) 
-        self.decoder_query = torch.repeat_interleave(self.decoder_query, self.args.enemy_num, dim = 0) 
+        # self.encoder_query = torch.repeat_interleave(self.encoder_query, self.args.ally_num, dim = 0) 
+        # self.decoder_query = torch.repeat_interleave(self.decoder_query, self.args.enemy_num, dim = 0) 
         
         # print("encoder_query: {}".format(self.encoder_query.size()))
         # print("decoder_query: {}".format(self.decoder_query.size()))
@@ -45,8 +45,8 @@ class Transfermer(nn.Module):
 
         infos = torch.tensor(infos)
         infos = torch.unsqueeze(infos, 0)
-        infos = torch.repeat_interleave(infos, self.args.ally_num, dim = 0)
-        # print("infos: {}".format(infos.size()))
+        # infos = torch.repeat_interleave(infos, self.args.ally_num, dim = 0)
+        print("infos: {}".format(infos.size()))
         self.entity_infos = infos
 
     def init_hidden(self):
@@ -56,23 +56,28 @@ class Transfermer(nn.Module):
         else:
             return torch.zeros(1, self.args.emb)
     
-    def random_arrange(self, inputs, encoder_input = True):
+    def append_extra_infos(self, inputs, encoder_input = True):
+        b, t, e = inputs.size()
         random_order = []
         number_to_choose = self.args.ally_num - 1 if encoder_input else self.args.enemy_num
-        tmp = self.ally_indices if encoder_input else self.enemy_indices
-
-        while len(random_order) < number_to_choose:
-            idx = random.choice(tmp, 1)
-            random_order.append(tmp[idx[0]])
-            del tmp[idx[0]]
+        tmp = self.ally_indices.copy() if encoder_input else self.enemy_indices.copy()
 
         query = self.encoder_query if encoder_input else self.decoder_query
+        query = torch.repeat_interleave(query, b, dim = 0)
 
         if encoder_input:
-            self.ally_order = random_order
-            query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
-            for i in range(self.args.ally_num - 1):
-                query[:, random_order[i]-1:random_order[i], :] = inputs[:, i:i+1, :] # agents
+            if self.args.random_encoder_input:
+                while len(random_order) < number_to_choose:
+                    idx = random.choice(len(tmp), 1)
+                    random_order.append(tmp[idx[0]])
+                    del tmp[idx[0]]
+
+                self.ally_order = random_order
+                query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
+                for i in range(self.args.ally_num - 1):
+                    query[:, random_order[i]-1:random_order[i], :] = inputs[:, i:i+1, :] # agents
+            else:
+                query[:, :self.args.ally_num, :] = inputs
         else:
             query = torch.cat([query, inputs], dim = 1)
 
@@ -95,18 +100,13 @@ class Transfermer(nn.Module):
             new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]      # ally features
             new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                # enemy features
             new = torch.reshape(new, (b, t, e))
-            new = torch.cat([new, self.entity_infos], axis = 2)
+            infos = torch.repeat_interleave(self.entity_infos, b, dim = 0)
+            new = torch.cat([new, infos], axis = 2)
             encoder_inputs = new[:, :task_ally_num, :]
             decoder_inputs = new[:, task_ally_num:, :]
 
-            if self.args.random_encoder_input:
-                encoder_inputs = self.random_arrange(encoder_inputs)
-                decoder_inputs = self.random_arrange(decoder_inputs, False)
-            else:
-                encoder_query = self.encoder_query
-                encoder_query[:, :task_enemy_num, :] = encoder_inputs
-                encoder_inputs = encoder_query
-                decoder_inputs = torch.cat([self.decoder_query, decoder_inputs], dim = 1)
+            encoder_inputs = self.append_extra_infos(encoder_inputs)
+            decoder_inputs = self.append_extra_infos(decoder_inputs, False)
 
             if self.args.use_cuda:
                 encoder_inputs = encoder_inputs.cuda()
