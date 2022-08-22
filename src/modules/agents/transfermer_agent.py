@@ -14,12 +14,6 @@ class Transfermer(nn.Module):
         self.encoder_query = torch.unsqueeze(torch.rand(args.max_encoder_size, args.token_dim), 0)
         self.decoder_query = torch.unsqueeze(torch.rand(6, args.token_dim), 0)
 
-        # self.encoder_query = torch.repeat_interleave(self.encoder_query, self.args.ally_num, dim = 0) 
-        # self.decoder_query = torch.repeat_interleave(self.decoder_query, self.args.enemy_num, dim = 0) 
-        
-        # print("encoder_query: {}".format(self.encoder_query.size()))
-        # print("decoder_query: {}".format(self.decoder_query.size()))
-
         # Output optimal action
         self.action_embedding = nn.Linear(args.emb, 1)
 
@@ -45,8 +39,6 @@ class Transfermer(nn.Module):
 
         infos = torch.tensor(infos)
         infos = torch.unsqueeze(infos, 0)
-        # infos = torch.repeat_interleave(infos, self.args.ally_num, dim = 0)
-        print("infos: {}".format(infos.size()))
         self.entity_infos = infos
 
     def init_hidden(self):
@@ -121,3 +113,11 @@ class Transfermer(nn.Module):
         h = tokens[:, -1:, :]
 
         return q, h
+
+    def save_query(self, path):
+        torch.save(self.encoder_query, "{}/encoder_query.pt".format(path))
+        torch.save(self.decoder_query, "{}/decoder_query.pt".format(path))
+
+    def load_query(self, path):
+        self.encoder_query = torch.load("{}/encoder_query.pt".format(path))
+        self.decoder_query = torch.load("{}/decoder_query.pt".format(path))

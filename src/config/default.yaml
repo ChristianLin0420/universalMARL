@@ -51,6 +51,7 @@ max_agents_len: 20
 
 max_encoder_size: 8
 max_decoder_size: 8
+max_mixing_size: 8
 random_encoder_input: True
 
 # --- Transformer parameters. Should be set manually. ---

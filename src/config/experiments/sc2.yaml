@@ -5,9 +5,10 @@ env: "sc2"
 parallel: False
 
 mixing_networks: [
-  "vdn",
+  # "vdn",
   # "qmix",
   # "qtran",
+  "transmix"
 ]
 
 agent_models: { # agent name / memory usage (upper bound)

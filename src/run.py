@@ -49,10 +49,7 @@ def run(_run, _config, _log):
     # Run and train
     info = {}
 
-    if args.agent == "meta":
-        meta_run(args = args, logger = logger)
-    else:
-        info = run_sequential(args = args, logger = logger)
+    info = run_sequential(args = args, logger = logger)
 
     # Clean up after finishing
     print("Exiting Main")
@@ -235,9 +232,6 @@ def run_sequential(args, logger):
     logger.console_logger.info("Finished Training")
 
     return info
-
-def meta_run(args, logger):
-    pass
 
 def args_sanity_check(config, _log):
 
