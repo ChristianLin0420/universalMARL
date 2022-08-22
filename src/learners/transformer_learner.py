@@ -159,6 +159,7 @@ class TransLearner:
         self.mac.cuda()
         self.target_mac.cuda()
         if self.mixer is not None:
+            self.mixing_query.cuda()
             self.mixer.cuda()
             self.target_mixer.cuda()
 
