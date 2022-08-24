@@ -51,7 +51,7 @@ class TransLearner:
         else:
             shuffle(self.mixing_indices)
             
-            for i, idx in enumerate(self.mixing_indices):
+            for i, idx in enumerate(self.mixing_indices[:self.args.enemy_num]):
                 new_inputs[:, :, idx:idx+1, :] = inputs[:, :, i:i+1, :]
 
         if self.args.use_cuda:
@@ -81,15 +81,11 @@ class TransLearner:
             agent_outs = self.mac.forward(batch, t=t)
             mac_out.append(agent_outs)
         mac_out = th.stack(mac_out, dim=1)  # Concat over time
-        print("mac_out: {}".format(mac_out.size()))
 
         # Pick the Q-Values for the actions taken by each agent
         chosen_action_qvals = th.gather(mac_out[:, :-1], dim=3, index=actions)  # Remove the last dim
-        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
         chosen_action_qvals = th.cat([chosen_action_qvals, observations[:, :, :, :5]], dim = 3)
-        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
         chosen_action_qvals = self.expand_inputs(chosen_action_qvals, self.args.random_inputs)
-        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
 
         # Calculate the Q-Values necessary for the target
         target_mac_out = []

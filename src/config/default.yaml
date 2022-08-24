@@ -48,9 +48,9 @@ action_space_size: 6
 max_agents_len: 20
 
 max_mixing_size: 8
-random_inputs: True
-random_encoder_inputs_zero: True
-random_mixing_inputs_zero: True
+random_inputs: False
+random_encoder_inputs_zero: False
+random_mixing_inputs_zero: False
 
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
