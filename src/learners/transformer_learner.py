@@ -1,11 +1,9 @@
 import copy
-from random import random
 from components.episode_buffer import EpisodeBatch
 from modules.mixers.transMix import TransMixer
 import torch as th
 from torch.optim import RMSprop
 from random import shuffle
-from numpy import random
 
 
 class TransLearner:
