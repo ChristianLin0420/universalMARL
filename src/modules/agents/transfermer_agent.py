@@ -1,6 +1,6 @@
 import torch.nn as nn
 import torch
-from numpy import random
+from random import shuffle
 from modules.helpers.models.vanilla_transformer import Transformer
 from envs.smac_config import get_entity_extra_information
 
@@ -11,17 +11,19 @@ class Transfermer(nn.Module):
         self.args = args
         
         self.transformer = Transformer(args, args.token_dim, args.emb)
-        self.encoder_query = torch.unsqueeze(torch.rand(args.max_encoder_size, args.token_dim), 0)
-        self.decoder_query = torch.unsqueeze(torch.rand(6, args.token_dim), 0)
+
+        if not args.random_encoder_inputs_zero:
+            self.encoder_query = torch.unsqueeze(torch.rand(args.action_space_size + args.max_mixing_size, args.token_dim), 0)
+        else:
+            self.encoder_query = torch.unsqueeze(torch.zeros(args.action_space_size + args.max_mixing_size, args.token_dim), 0)
+
+        self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0)
 
         # Output optimal action
         self.action_embedding = nn.Linear(args.emb, 1)
 
         # helper
-        self.ally_indices = [i for i in range(1, args.max_encoder_size)]
-        self.enemy_indices = [i for i in range(args.max_decoder_size)]
-        self.ally_order = None
-        self.enemy_order = None
+        self.encoder_indices = [i for i in range(1, args.action_space_size + args.max_mixing_size)]
 
         # create entity queries
         self.init_entity_infos()
@@ -50,24 +52,18 @@ class Transfermer(nn.Module):
     
     def append_extra_infos(self, inputs, encoder_input = True):
         b, t, e = inputs.size()
-        random_order = []
-        number_to_choose = self.args.ally_num - 1 if encoder_input else self.args.enemy_num
-        tmp = self.ally_indices.copy() if encoder_input else self.enemy_indices.copy()
 
         query = self.encoder_query if encoder_input else self.decoder_query
         query = torch.repeat_interleave(query, b, dim = 0)
 
         if encoder_input:
-            if self.args.random_encoder_input:
-                while len(random_order) < number_to_choose:
-                    idx = random.choice(len(tmp), 1)
-                    random_order.append(tmp[idx[0]])
-                    del tmp[idx[0]]
+            if self.args.random_inputs:
+                shuffle(self.encoder_indices)
 
-                self.ally_order = random_order
                 query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
+
                 for i in range(self.args.ally_num - 1):
-                    query[:, random_order[i]-1:random_order[i], :] = inputs[:, i:i+1, :] # agents
+                    query[:, self.encoder_indices[i]-1:self.encoder_indices[i], :] = inputs[:, i:i+1, :] # ally
             else:
                 query[:, :self.args.ally_num, :] = inputs
         else:
@@ -89,8 +85,8 @@ class Transfermer(nn.Module):
 
             new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
             new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
-            new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]      # ally features
-            new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                # enemy features
+            new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
+            new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
             new = torch.reshape(new, (b, t, e))
             infos = torch.repeat_interleave(self.entity_infos, b, dim = 0)
             new = torch.cat([new, infos], axis = 2)

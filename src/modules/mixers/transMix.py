@@ -20,6 +20,10 @@ class TransMixer(nn.Module):
 
     def forward(self, agent_qs, states):
         bs = agent_qs.size(0)
+
+        if self.args.use_cuda:
+            agent_qs = agent_qs.cuda()
+            states = states.cuda()
         
         agent_qs = agent_qs.view(-1, self.input_size)
         token = self.token_embedding(agent_qs).view(-1, self.args.max_mixing_size, self.args.emb)

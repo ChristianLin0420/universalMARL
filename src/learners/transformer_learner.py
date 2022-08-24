@@ -15,7 +15,10 @@ class TransLearner:
 
         self.params = list(mac.parameters())
 
-        self.mixing_query = th.unsqueeze(th.rand(args.max_mixing_size, args.token_dim - 1), 0)
+        if not args.random_mixing_inputs_zero:
+            self.mixing_query = th.unsqueeze(th.rand(args.max_mixing_size, args.token_dim - 1), 0)
+        else:
+            self.mixing_query = th.unsqueeze(th.zeros(args.max_mixing_size, args.token_dim - 1), 0)
 
         self.last_target_update_episode = 0
 
@@ -38,7 +41,7 @@ class TransLearner:
     def expand_inputs(self, inputs, randomize = False):
         b, t, a, e = inputs.size()
         new_inputs = th.repeat_interleave(self.mixing_query, t, dim = 0).unsqueeze(0)
-        new_inputs = th.repeat_interleave(new_inputs, b, dim = 0)
+        new_inputs = th.repeat_interleave(new_inputs, b, dim = 0)            
 
         if not randomize:
             new_inputs[:, :, :a, :] = inputs
@@ -53,6 +56,9 @@ class TransLearner:
             
             for i, idx in enumerate(random_order):
                 new_inputs[:, :, idx:idx+1, :] = inputs[:, :, i:i+1, :]
+
+        if self.args.use_cuda:
+            new_inputs.cuda()
 
         return new_inputs
 
@@ -83,7 +89,7 @@ class TransLearner:
         # Pick the Q-Values for the actions taken by each agent
         chosen_action_qvals = th.gather(mac_out[:, :-1], dim=3, index=actions)  # Remove the last dim
         chosen_action_qvals = th.cat([chosen_action_qvals, observations[:, :, :, :5]], dim = 3)
-        chosen_action_qvals = self.expand_inputs(chosen_action_qvals, True)
+        chosen_action_qvals = self.expand_inputs(chosen_action_qvals, self.args.random_inputs)
         # print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
 
         # Calculate the Q-Values necessary for the target
@@ -107,7 +113,7 @@ class TransLearner:
             cur_max_actions = mac_out_detach[:, 1:].max(dim=3, keepdim=True)[1]
             target_max_qvals = th.gather(target_mac_out, 3, cur_max_actions)
             target_max_qvals = th.cat([target_max_qvals, observations[:, :, :, :5]], dim = 3)
-            target_max_qvals = self.expand_inputs(target_max_qvals, True)
+            target_max_qvals = self.expand_inputs(target_max_qvals, self.args.random_inputs)
         else:
             target_max_qvals = target_mac_out.max(dim=3)[0]
 
@@ -176,11 +182,7 @@ class TransLearner:
         self.target_mac.load_models(path)
         
         if self.mixer is not None:
-            if self.args.mixing_net_path != "":
-                path = self.args.mixing_net_path
-                self.mixer.load_state_dict(th.load("{}/mixer.th".format(path), map_location=lambda storage, loc: storage))
-                self.optimiser.load_state_dict(th.load("{}/opt.th".format(path), map_location=lambda storage, loc: storage))
-                self.mixing_query = th.load("{}/mixing_query.pt".format(path), map_location=lambda storage, loc: storage)
+            self.mixer.load_state_dict(th.load("{}/mixer.th".format(path), map_location=lambda storage, loc: storage))
+        self.optimiser.load_state_dict(th.load("{}/opt.th".format(path), map_location=lambda storage, loc: storage))
+        self.mixing_query = th.load("{}/mixing_query.pt".format(path), map_location=lambda storage, loc: storage)
 
-                for param in self.mixer.parameters():
-                    param.requires_grad = self.args.fixed_mixing_networdk

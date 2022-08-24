@@ -1,4 +1,5 @@
 import torch
+from random import shuffle
 from numpy import random
 
 # a = torch.unsqueeze(torch.rand(8, 7), 0)
@@ -8,6 +9,7 @@ from numpy import random
 
 # print(a)
 # print(b)
-
-k = [0, 1, 2, 3, 4, 5, 6, 7]
-print(random.choice(k, 3))
+b = [i for i in range(1, 16)]
+print(b)
+shuffle(b)
+print(b[:3])

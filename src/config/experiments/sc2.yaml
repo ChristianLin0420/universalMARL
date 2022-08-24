@@ -2,7 +2,7 @@
 
 env: "sc2"
 
-parallel: False
+parallel: True
 
 mixing_networks: [
   # "vdn",
@@ -11,14 +11,14 @@ mixing_networks: [
   "transmix"
 ]
 
-agent_models: { # agent name / memory usage (upper bound)
-  # "rnn" :                 [1400, 1400], 
-  # "updet" :               [1600, 3500],
-  # "vanilla_transformer" : [3000, 12000],
-  # "dummy_transformer" :   [7000, 18000],
-  # "dummy_updet":          [3000, 5000],
-  "transfermer":          [0, 0]
-}
+agent_models: [
+  # "rnn", 
+  # "updet",
+  # "vanilla_transformer",
+  # "dummy_transformer",
+  # "dummy_updet",
+  "transfermer"
+]
 
 # --- SMAC Environment ---
 agents_enemies: {

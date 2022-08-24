@@ -143,10 +143,7 @@ def auto(params):
             u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
             env_config = recursive_dict_update(env_config, u)
 
-        # if config_dict["meta"] is not None:
-        #     pass
-
-        for key_a, val_a in agent_models.items():
+        for key_a in agent_models:
             agent = { "agent": key_a }
             config_dict = recursive_dict_update(config_dict, agent)
 
@@ -167,84 +164,26 @@ def auto(params):
                 elif scenario == 2:
                     config_dict["task_dir"] = "transfers"
 
-                    timesteps = []
-
-                    # Go through all files in args.checkpoint_path
-                    for name in os.listdir(BENCHMARKS_MODEL_PATH[0]):
-                        full_name = os.path.join(BENCHMARKS_MODEL_PATH[0], name)
-                        # Check if they are dirs the names of which are numbers
-                        if os.path.isdir(full_name) and name.isdigit():
-                            timesteps.append(int(name))
-
-                    config_dict["checkpoint_path"] = BASELINES_MODEL_PATH[0]
-                    config_dict["mixing_net_path"] = BENCHMARKS_MODEL_PATH[0] + "/{}".format(max(timesteps))
-
-                    del BASELINES_MODEL_PATH[0]
-                    del BENCHMARKS_MODEL_PATH[0]
-
                 if config_dict["agent"] in ["rnn"] and scenario >= 2: 
                     continue
 
-                if cuda_available:
-                    # check whether there are enough memory space in GPUs
-                    while True:
-                        gpu_idx = None
+                logger = get_logger()
+                ex.logger = logger
 
-                        for i in range(th.cuda.device_count()):
-                            h = nvmlDeviceGetHandleByIndex(i)
-                            gpu_info = nvmlDeviceGetMemoryInfo(h)
-                            free = gpu_info.free / 1048576
-                            demand = None
+                # Save to disk by default for sacred
+                logger.info("Saving to FileStorageObserver in results/sacred.")
+                file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
 
-                            if scenario == 0:
-                                demand = val_a[0]
-                            else:
-                                demand = val_a[1]
+                # now add all the config to sacred
+                if initialization:
+                    ex.add_config(config_dict)
+                    ex.observers.append(FileStorageObserver.create(file_obs_path))
+                    ex.run()
 
-                            if free >= demand:
-                                gpu_idx = i
-                                break
-
-                        if gpu_idx is not None:
-                            config_dict["gpu_id"] = gpu_idx
-                            break
-
-                    logger = get_logger()
-                    ex.logger = logger
-
-                    # Save to disk by default for sacred
-                    logger.info("Saving to FileStorageObserver in results/sacred.")
-                    file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
-
-                    # now add all the config to sacred
-                    if initialization:
-                        ex.add_config(config_dict)
-                        ex.observers.append(FileStorageObserver.create(file_obs_path))
-                        ex.run()
-
-                        initialization = False
-                    else:
-                        ex.observers[0] = FileStorageObserver.create(file_obs_path)
-                        ex.run(config_updates = config_dict)
-
+                    initialization = False
                 else:
-                    logger = get_logger()
-                    ex.logger = logger
-
-                    # Save to disk by default for sacred
-                    logger.info("Saving to FileStorageObserver in results/sacred.")
-                    file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
-
-                    # now add all the config to sacred
-                    if initialization:
-                        ex.add_config(config_dict)
-                        ex.observers.append(FileStorageObserver.create(file_obs_path))
-                        ex.run()
-
-                        initialization = False
-                    else:
-                        ex.observers[0] = FileStorageObserver.create(file_obs_path)
-                        ex.run(config_updates = config_dict)
+                    ex.observers[0] = FileStorageObserver.create(file_obs_path)
+                    ex.run(config_updates = config_dict)
                 
                 time.sleep(PAUSE_NEXT_TASK_DURATION)
 
