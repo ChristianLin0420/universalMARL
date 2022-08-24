@@ -1,7 +1,7 @@
 import torch.nn as nn
 import torch
 from random import shuffle
-from modules.helpers.models.vanilla_transformer import Transformer
+from modules.helpers.models.transfer_transformer import TransferableTransformer
 from envs.smac_config import get_entity_extra_information
 
 
@@ -10,7 +10,7 @@ class Transfermer(nn.Module):
         super(Transfermer, self).__init__()
         self.args = args
         
-        self.transformer = Transformer(args, args.token_dim, args.emb)
+        self.transformer = TransferableTransformer(args, args.token_dim, args.emb)
 
         if not args.random_encoder_inputs_zero:
             self.encoder_query = torch.unsqueeze(torch.rand(args.action_space_size + args.max_mixing_size, args.token_dim), 0)
@@ -100,11 +100,9 @@ class Transfermer(nn.Module):
                 encoder_inputs = encoder_inputs.cuda()
                 decoder_inputs = decoder_inputs.cuda()
         
-        outputs, tokens = self.transformer.forward(encoder_inputs, hidden_state, None, decoder_inputs)
-
+        outputs, tokens = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, None)
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
-
         # last dim for hidden state
         h = tokens[:, -1:, :]
 

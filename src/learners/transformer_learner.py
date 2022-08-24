@@ -4,6 +4,7 @@ from components.episode_buffer import EpisodeBatch
 from modules.mixers.transMix import TransMixer
 import torch as th
 from torch.optim import RMSprop
+from random import shuffle
 from numpy import random
 
 
@@ -19,6 +20,8 @@ class TransLearner:
             self.mixing_query = th.unsqueeze(th.rand(args.max_mixing_size, args.token_dim - 1), 0)
         else:
             self.mixing_query = th.unsqueeze(th.zeros(args.max_mixing_size, args.token_dim - 1), 0)
+
+        self.mixing_indices = [i for i in range(args.max_mixing_size)]
 
         self.last_target_update_episode = 0
 
@@ -46,15 +49,9 @@ class TransLearner:
         if not randomize:
             new_inputs[:, :, :a, :] = inputs
         else:
-            random_order = []
-            tmp = [i for i in range(self.args.max_mixing_size)]
-
-            while len(random_order) < a:
-                idx = random.choice(len(tmp), 1)
-                random_order.append(tmp[idx[0]])
-                del tmp[idx[0]]
+            shuffle(self.mixing_indices)
             
-            for i, idx in enumerate(random_order):
+            for i, idx in enumerate(self.mixing_indices):
                 new_inputs[:, :, idx:idx+1, :] = inputs[:, :, i:i+1, :]
 
         if self.args.use_cuda:
@@ -84,13 +81,15 @@ class TransLearner:
             agent_outs = self.mac.forward(batch, t=t)
             mac_out.append(agent_outs)
         mac_out = th.stack(mac_out, dim=1)  # Concat over time
-        # print("mac_out: {}".format(mac_out.size()))
+        print("mac_out: {}".format(mac_out.size()))
 
         # Pick the Q-Values for the actions taken by each agent
         chosen_action_qvals = th.gather(mac_out[:, :-1], dim=3, index=actions)  # Remove the last dim
+        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
         chosen_action_qvals = th.cat([chosen_action_qvals, observations[:, :, :, :5]], dim = 3)
+        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
         chosen_action_qvals = self.expand_inputs(chosen_action_qvals, self.args.random_inputs)
-        # print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
+        print("chosen_action_qvals: {}".format(chosen_action_qvals.size()))
 
         # Calculate the Q-Values necessary for the target
         target_mac_out = []

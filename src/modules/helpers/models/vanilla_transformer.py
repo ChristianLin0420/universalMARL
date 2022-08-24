@@ -38,17 +38,12 @@ class Transformer(nn.Module):
         # reward token/hidden token
         final_size = self.args.max_agents_len + 1
 
-        if query is not None:
-            d = self.query_embedding(query)
-            d = self.decoder(d, x, mask, mask, self.args.max_agents_len, False)
-            return d, x
+        if self.dummy:
+            x = self.decoder(tokens, x, mask, mask, self.args.max_agents_len)
         else:
-            if self.dummy:
-                x = self.decoder(tokens, x, mask, mask, self.args.max_agents_len)
-            else:
-                x = self.decoder(tokens, x, mask, mask, t)
-                final_size = t
+            x = self.decoder(tokens, x, mask, mask, t)
+            final_size = t
 
-            x = self.toprobs(x.view(b * final_size, e)).view(b, final_size, self.output_dim)
+        x = self.toprobs(x.view(b * final_size, e)).view(b, final_size, self.output_dim)
 
-            return x, tokens
+        return x, tokens

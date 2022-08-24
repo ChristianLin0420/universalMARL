@@ -2,7 +2,7 @@
 
 env: "sc2"
 
-parallel: True
+parallel: False
 
 mixing_networks: [
   # "vdn",
