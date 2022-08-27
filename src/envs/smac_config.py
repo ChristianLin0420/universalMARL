@@ -77,27 +77,27 @@ def get_smac_map_config(env_name):
 
     assert smac_maps_entities[env_name] is not None
 
-    return {
-        "ally_num": smac_maps_entities[env_name][0], 
-        "enemy_num": smac_maps_entities[env_name][1],
-        "enemy_feature": 7,
-        "own_feature": 7,
-        "token_dim": 7,
-        "env_args": {
-            "map_name": env_name
-        }
-    }
-
     # return {
     #     "ally_num": smac_maps_entities[env_name][0], 
     #     "enemy_num": smac_maps_entities[env_name][1],
-    #     "enemy_feature": smac_maps_features[env_name][1],
-    #     "own_feature": smac_maps_features[env_name][3],
-    #     "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+    #     "enemy_feature": 7,
+    #     "own_feature": 7,
+    #     "token_dim": 7,
     #     "env_args": {
     #         "map_name": env_name
     #     }
     # }
+
+    return {
+        "ally_num": smac_maps_entities[env_name][0], 
+        "enemy_num": smac_maps_entities[env_name][1],
+        "enemy_feature": smac_maps_features[env_name][1],
+        "own_feature": smac_maps_features[env_name][3],
+        "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+        "env_args": {
+            "map_name": env_name
+        }
+    }
 
 def get_entity_extra_information(identity, role):
     return [entity_identity[identity], entity_role[role]]

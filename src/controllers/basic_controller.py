@@ -123,7 +123,7 @@ class BasicMAC:
         arranged_obs = th.cat((raw_obs[:, :, -1:], raw_obs[:, :, :-1]), 2)
 
         if env == "sc2":
-            token_size = self.args.token_dim if self.args.agent != "transfermer" else self.args.token_dim - 2
+            token_size = self.args.token_dim
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, token_size)
         elif env == "simple_spread":
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)

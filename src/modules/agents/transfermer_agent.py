@@ -19,6 +19,9 @@ class Transfermer(nn.Module):
 
         self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0)
 
+        self.encoder_query = nn.Parameter(self.encoder_query)
+        self.decoder_query = nn.Parameter(self.decoder_query)
+
         # Output optimal action
         self.action_embedding = nn.Linear(args.emb, 1)
 
@@ -79,7 +82,7 @@ class Transfermer(nn.Module):
             inputs = torch.reshape(inputs, (b, t * e))
             new = torch.zeros(b, t * e)
 
-            f_size = self.args.token_dim - 2
+            f_size = self.args.token_dim
             own_feature = 1
             move_feature = 4
 
@@ -88,8 +91,8 @@ class Transfermer(nn.Module):
             new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
             new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
             new = torch.reshape(new, (b, t, e))
-            infos = torch.repeat_interleave(self.entity_infos, b, dim = 0)
-            new = torch.cat([new, infos], axis = 2)
+            # infos = torch.repeat_interleave(self.entity_infos, b, dim = 0)
+            # new = torch.cat([new, infos], axis = 2)
             encoder_inputs = new[:, :task_ally_num, :]
             decoder_inputs = new[:, task_ally_num:, :]
 
@@ -115,3 +118,7 @@ class Transfermer(nn.Module):
     def load_query(self, path):
         self.encoder_query = torch.load("{}/encoder_query.pt".format(path))
         self.decoder_query = torch.load("{}/decoder_query.pt".format(path))
+
+        if self.args.use_cuda:
+            self.encoder_query = self.encoder_query.cuda()
+            self.decoder_query = self.decoder_query.cuda()

@@ -135,8 +135,8 @@ def auto(params):
         env_config = _get_config(params, "", "envs", config_dict["env"] + parallel_env)
 
         if config_dict["env"] == "sc2":
-            map_name = "3m" if int(key_s) == 0 else "8m"
-#             map_name = "5m_vs_6m" if int(key_s) == 0 else "8m_vs_9m"
+            # map_name = "3m" if int(key_s) == 0 else "8m"
+            map_name = "5m_vs_6m" if int(key_s) == 0 else "8m_vs_9m"
             map_c = get_smac_map_config(map_name)
             env_config = recursive_dict_update(env_config, map_c)
         elif config_dict["env"] == "simple_spread":

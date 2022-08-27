@@ -2,6 +2,7 @@ import copy
 from components.episode_buffer import EpisodeBatch
 from modules.mixers.transMix import TransMixer
 import torch as th
+import torch.nn as nn
 from torch.optim import RMSprop
 from random import shuffle
 
@@ -15,9 +16,11 @@ class TransLearner:
         self.params = list(mac.parameters())
 
         if not args.random_mixing_inputs_zero:
-            self.mixing_query = th.unsqueeze(th.rand(args.max_mixing_size, args.token_dim - 1), 0)
+            self.mixing_query = th.unsqueeze(th.rand(args.max_mixing_size, args.token_dim + 1), 0)
         else:
-            self.mixing_query = th.unsqueeze(th.zeros(args.max_mixing_size, args.token_dim - 1), 0)
+            self.mixing_query = th.unsqueeze(th.zeros(args.max_mixing_size, args.token_dim + 1), 0)
+
+        self.mixing_query = nn.Parameter(self.mixing_query)
 
         self.mixing_indices = [i for i in range(args.max_mixing_size)]
 
@@ -49,7 +52,7 @@ class TransLearner:
         else:
             shuffle(self.mixing_indices)
             
-            for i, idx in enumerate(self.mixing_indices[:self.args.enemy_num]):
+            for i, idx in enumerate(self.mixing_indices[:self.args.ally_num]):
                 new_inputs[:, :, idx:idx+1, :] = inputs[:, :, i:i+1, :]
 
         if self.args.use_cuda:
