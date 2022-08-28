@@ -24,4 +24,7 @@ REGISTRY['transformer_aggregation'] = TransformerAggregationAgent
 from .axial_transformer_agent import AxialTransformerAgent
 REGISTRY['axial_transformer'] = AxialTransformerAgent
 
-TRANSFORMERbasedAgent = ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer', 'transfermer']
+from .perceiverIO_agent import PerceiverIOAgent
+REGISTRY['perceiver_io'] = PerceiverIOAgent
+
+TRANSFORMERbasedAgent = ['updet', 'dummy_updet', 'transformer_aggregation', 'axial_transformer', 'vanilla_transformer', 'dummy_transformer', 'transfermer', 'perceiver_io']

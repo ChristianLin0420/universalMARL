@@ -122,3 +122,6 @@ class Transfermer(nn.Module):
         if self.args.use_cuda:
             self.encoder_query = self.encoder_query.cuda()
             self.decoder_query = self.decoder_query.cuda()
+
+        self.encoder_query.requires_grad =  False
+        self.decoder_query.requires_grad =  False

@@ -1,14 +1,9 @@
-from ast import arg
-from lib2to3.pgen2 import token
-from numpy import size
+
 import torch.nn as nn
-import torch.nn.functional as F
 import torch
 
 from .encoder import Encoder
 from .decoder import Decoder
-
-# from modules.helpers.embedding.random_layer import RandomLayer
 
 class Transformer(nn.Module):
 

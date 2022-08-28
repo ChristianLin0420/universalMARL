@@ -1,0 +1,66 @@
+import torch.nn as nn
+import torch
+
+from modules.helpers.models.perceiverIO import PerceiverIO
+
+
+class PerceiverIOAgent(nn.Module):
+    def __init__(self, input_shape, args):
+        super(PerceiverIOAgent, self).__init__()
+
+        self.args = args
+        self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0)
+
+        # perceiverIO
+        self.perceiverIO = PerceiverIO(args)
+
+        # Output optimal action
+        self.action_embedding = nn.Linear(args.key_out_channel, 1)
+
+        # Hidden embedding
+        self.hidden_embedding = nn.Linear(args.key_out_channel, args.emb)
+
+    def init_hidden(self):
+        # make hidden states on same device as model
+        if self.args.use_cuda:
+            return torch.zeros(1, self.args.emb).cuda()
+        else:
+            return torch.zeros(1, self.args.emb)
+
+    def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
+        
+        b, t, e = inputs.size()
+
+        inputs = torch.reshape(inputs, (b, t * e))
+        new = torch.zeros(b, t * e)
+
+        f_size = self.args.token_dim
+        own_feature = 1
+        move_feature = 4
+
+        new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
+        new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
+        new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
+        new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
+        new = torch.reshape(new, (b, t, e))
+
+        encoder_inputs = new[:, :task_ally_num, :]
+        decoder_inputs = new[:, task_ally_num:, :]
+
+        query = torch.repeat_interleave(self.decoder_query, b, dim = 0)
+        decoder_inputs = torch.cat([query, decoder_inputs], dim = 1)
+
+        if self.args.use_cuda:
+            encoder_inputs = encoder_inputs.cuda()
+            decoder_inputs = decoder_inputs.cuda()
+
+        outputs = self.perceiverIO(encoder_inputs, hidden_state, decoder_inputs)
+
+        # first output for 6 action (no_op stop up down left right)
+        q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
+        
+        # last dim for hidden state
+        h = self.hidden_embedding(outputs[:, -1:, :].view(-1, self.args.key_out_channel)).view(b, 1, self.args.emb)
+
+        return q[:, :-1, :], h
+        
