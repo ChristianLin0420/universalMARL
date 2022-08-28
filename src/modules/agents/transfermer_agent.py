@@ -11,40 +11,24 @@ class Transfermer(nn.Module):
         self.args = args
         
         self.transformer = TransferableTransformer(args, args.token_dim, args.emb)
+        
+        self.max_ally_num = args.max_ally_num
+        self.max_enemy_num = args.max_enemy_num
+        self.max_entity_num = max(self.max_ally_num, self.max_enemy_num)
 
         if not args.random_encoder_inputs_zero:
-            self.encoder_query = torch.unsqueeze(torch.rand(args.action_space_size + args.max_mixing_size, args.token_dim), 0)
+            self.encoder_query = torch.unsqueeze(torch.rand(args.action_space_size + self.max_entity_num, args.token_dim), 0)
+            self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size + self.max_enemy_num, args.token_dim), 0)
         else:
-            self.encoder_query = torch.unsqueeze(torch.zeros(args.action_space_size + args.max_mixing_size, args.token_dim), 0)
-
-        self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0)
-
-        self.encoder_query = nn.Parameter(self.encoder_query)
-        self.decoder_query = nn.Parameter(self.decoder_query)
+            self.encoder_query = torch.unsqueeze(torch.zeros(args.action_space_size + self.max_entity_num, args.token_dim), 0)
+            self.decoder_query = torch.unsqueeze(torch.zeros(args.action_space_size + self.max_enemy_num, args.token_dim), 0)
 
         # Output optimal action
         self.action_embedding = nn.Linear(args.emb, 1)
 
         # helper
-        self.encoder_indices = [i for i in range(1, args.action_space_size + args.max_mixing_size)]
-
-        # create entity queries
-        self.init_entity_infos()
-
-    def init_entity_infos(self):
-        infos = []
-
-        for i in range(self.args.ally_num + self.args.enemy_num):
-            if i == 0:
-                infos.append(get_entity_extra_information("self", "marine"))
-            elif i < self.args.ally_num:
-                infos.append(get_entity_extra_information("ally", "marine"))
-            else:
-                infos.append(get_entity_extra_information("enemy", "marine"))
-
-        infos = torch.tensor(infos)
-        infos = torch.unsqueeze(infos, 0)
-        self.entity_infos = infos
+        self.encoder_indices = [i for i in range(1, args.action_space_size + self.max_entity_num)]
+        self.decoder_indices = [i for i in range(1, args.action_space_size + self.max_enemy_num)]
 
     def init_hidden(self):
         # make hidden states on same device as model
@@ -54,23 +38,21 @@ class Transfermer(nn.Module):
             return torch.zeros(1, self.args.emb)
     
     def append_extra_infos(self, inputs, encoder_input = True):
-        b, t, e = inputs.size()
+        b, _, _ = inputs.size()
 
         query = self.encoder_query if encoder_input else self.decoder_query
+        indices = self.encoder_indices if encoder_input else self.decoder_indices
         query = torch.repeat_interleave(query, b, dim = 0)
 
-        if encoder_input:
-            if self.args.random_inputs:
-                shuffle(self.encoder_indices)
+        if self.args.random_inputs:
+            shuffle(indices)
 
-                query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
+            query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
 
-                for i in range(self.args.ally_num - 1):
-                    query[:, self.encoder_indices[i]-1:self.encoder_indices[i], :] = inputs[:, i:i+1, :] # ally
-            else:
-                query[:, :self.args.ally_num, :] = inputs
+            for i in range(self.args.ally_num - 1):
+                query[:, indices[i]-1:indices[i], :] = inputs[:, i:i+1, :] # ally
         else:
-            query = torch.cat([query, inputs], dim = 1)
+            query[:, :self.args.ally_num, :] = inputs
 
         return query
 
@@ -91,8 +73,6 @@ class Transfermer(nn.Module):
             new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
             new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
             new = torch.reshape(new, (b, t, e))
-            # infos = torch.repeat_interleave(self.entity_infos, b, dim = 0)
-            # new = torch.cat([new, infos], axis = 2)
             encoder_inputs = new[:, :task_ally_num, :]
             decoder_inputs = new[:, task_ally_num:, :]
 
@@ -125,3 +105,7 @@ class Transfermer(nn.Module):
 
         self.encoder_query.requires_grad =  False
         self.decoder_query.requires_grad =  False
+
+    def fixed_models_weight(self):
+        self.transformer.requires_grad = False
+        self.action_embedding.requires_grad = False

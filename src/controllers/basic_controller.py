@@ -1,6 +1,7 @@
 from modules.agents import REGISTRY as agent_REGISTRY, TRANSFORMERbasedAgent
 from components.action_selectors import REGISTRY as action_REGISTRY
 import torch as th
+import torch.nn as nn
 
 
 # This multi-agent controller shares parameters between agents
@@ -15,6 +16,9 @@ class BasicMAC:
         self.action_selector = action_REGISTRY[args.action_selector](args)
 
         self.hidden_states = None
+
+        if args.agent == "transfermer":
+            self.action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + args.enemy_num)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -62,6 +66,10 @@ class BasicMAC:
                 agent_outs, self.hidden_states = self.agent(agent_inputs,
                                                            self.hidden_states.reshape(-1, 1, self.args.emb),
                                                            self.args.enemy_num, self.args.ally_num)
+
+                if self.args.agent == "transfermer":
+                    agent_outs = self.action_embedding(agent_outs.reshape(-1, self.args.action_space_size + self.args.max_enemy_num))
+
             else:
                 agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states.reshape(-1, 1, self.args.emb), env = self.args.env)
             
@@ -94,6 +102,7 @@ class BasicMAC:
 
         if self.args.agent in ["transfermer"]:
             self.agent.load_query(path)
+            self.agent.fixed_models_weight()
 
     def _build_agents(self, input_shape):
         self.agent = agent_REGISTRY[self.args.agent](input_shape, self.args)

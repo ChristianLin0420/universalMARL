@@ -48,6 +48,8 @@ action_space_size: 6
 max_agents_len: 20
 
 max_mixing_size: 8
+max_ally_num: 8
+max_enemy_num: 8
 random_inputs: False
 random_encoder_inputs_zero: False
 random_mixing_inputs_zero: False
@@ -66,7 +68,7 @@ latent_embedding_size: 32
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
 max_len: 128
 emb: 32 # embedding dimension of transformer
-heads: 3 # head number of transformer
+heads: 5 # head number of transformer
 depth: 2 # block number of transformer
 
 # --- Experiment running params ---

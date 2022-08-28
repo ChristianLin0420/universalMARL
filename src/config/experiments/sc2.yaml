@@ -17,8 +17,8 @@ agent_models: [
   # "vanilla_transformer",
   # "dummy_transformer",
   # "dummy_updet",
-  # "transfermer", 
-  "perceiver_io"
+  "transfermer", 
+  # "perceiver_io"
 ]
 
 # --- SMAC Environment ---

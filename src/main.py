@@ -128,6 +128,7 @@ def auto(params):
     initialization = True
 
     if cuda_available:
+        config_dict["use_cuda"] = True
         nvmlInit()
 
     for key_s, val_s in scenarios.items():
@@ -155,16 +156,10 @@ def auto(params):
                 config_dict = recursive_dict_update(config_dict, alg_config)
 
                 # rnn model transfer learning has not implenmented
-                scenario = int(key_s)
+                scenarios = ["baselines", "benchmarks", "transfers"]
+                config_dict["task_dir"] = scenarios[int(key_s)]
 
-                if scenario == 0:
-                    config_dict["task_dir"] = "baselines"
-                elif scenario == 1: 
-                    config_dict["task_dir"] = "benchmarks"
-                elif scenario == 2:
-                    config_dict["task_dir"] = "transfers"
-
-                if config_dict["agent"] in ["rnn"] and scenario >= 2: 
+                if config_dict["agent"] in ["rnn"] and int(key_s) >= 2: 
                     continue
 
                 logger = get_logger()
