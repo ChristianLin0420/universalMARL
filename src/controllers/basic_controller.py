@@ -19,6 +19,8 @@ class BasicMAC:
 
         if args.agent == "transfermer":
             self.action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + args.enemy_num)
+            if args.use_cuda:
+                self.action_embedding.to(args.device)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -68,6 +70,8 @@ class BasicMAC:
                                                            self.args.enemy_num, self.args.ally_num)
 
                 if self.args.agent == "transfermer":
+                    if self.args.use_cuda:
+                        agent_outs.cuda()
                     agent_outs = self.action_embedding(agent_outs.reshape(-1, self.args.action_space_size + self.args.max_enemy_num))
 
             else:
