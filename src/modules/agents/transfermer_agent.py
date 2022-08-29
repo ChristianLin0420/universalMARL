@@ -31,7 +31,10 @@ class Transfermer(nn.Module):
         self.decoder_indices = [i for i in range(1, args.action_space_size + self.max_enemy_num)]
 
         # Mapping to target action spaces
-        self.map_action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + 3)
+        if args.checkpoint_path == "":
+            self.map_action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + args.enemy_num)
+        else:
+            self.map_action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + args.min_enemy_num)
 
     def init_hidden(self):
         # make hidden states on same device as model

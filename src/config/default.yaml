@@ -49,7 +49,9 @@ max_agents_len: 20
 
 max_mixing_size: 8
 max_ally_num: 8
+min_ally_num: 3
 max_enemy_num: 8
+min_enemy_num: 3
 random_inputs: False
 random_encoder_inputs_zero: False
 random_mixing_inputs_zero: False
