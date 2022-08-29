@@ -22,7 +22,7 @@ buffer_cpu_only: True # If true we won't keep all of the replay buffer in vram
 use_tensorboard: True # Log results to tensorboard
 save_model: True # Save the models to disk
 save_model_interval: 500000 # Save models after this many timesteps
-checkpoint_path: "results/experiment test/models/sc2/baselines/transmix__2022-08-29_16-11-20" # Load a checkpoint from this path
+checkpoint_path: "" # Load a checkpoint from this path
 evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
 load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
 save_replay: False # Saving the replay of the model loaded from checkpoint_path
@@ -55,7 +55,7 @@ random_encoder_inputs_zero: False
 random_mixing_inputs_zero: False
 
 # --- PerceiverIO parameters ---
-value_in_channel: 32
+value_in_channel: 64
 value_out_channel: 64
 key_in_channel: 32
 key_out_channel: 32
