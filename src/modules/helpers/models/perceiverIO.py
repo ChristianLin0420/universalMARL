@@ -15,8 +15,8 @@ class PerceiverIO(nn.Module):
         self.latent_embedding_size = args.latent_embedding_size
 
         # learnable initial latent vectors
-        self.latent = nn.Parameter(torch.empty(args.latent_length, args.latent_embedding_size))
-        self._init_parameters(0.02)
+        self.latent = nn.Parameter(torch.rand(args.latent_length, args.latent_embedding_size))
+        # self._init_parameters(0.02)
 
         # Embedding
         self.token_embedding = nn.Linear(args.token_dim, args.emb)
@@ -63,12 +63,16 @@ class PerceiverIO(nn.Module):
 
         b, _, _,  = tokens.size()
 
-        latent = repeat(self.latent, "... -> b ...", b = b)
+        latent = torch.repeat_interleave(torch.unsqueeze(self.latent, dim = 0), b, dim = 0) #repeat(self.latent, "... -> b ...", b = b)
         x = self.encode_cross_attention(tokens, latent)
+        print("-" * 50)
+        print("x: {}".format(x))
+        print("1" * 50)
 
         for layer in self.process:
+            print("x: {}".format(x))
             x = layer(x, x)
-
+        print("2" * 50)
         query = self.token_embedding(query)
         query = torch.cat((query, h), 1)
         x = self.decode_cross_attention(x, query).view(b, self.args.action_space_size + self.args.enemy_num + 1, self.args.key_out_channel)

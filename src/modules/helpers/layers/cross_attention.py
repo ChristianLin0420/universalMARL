@@ -40,6 +40,10 @@ class CrossAttention(nn.Module):
         keys = self.keys(x).view(x_b, x_t, self.heads, self.key_out_channel)
         queries = self.querys(y).view(y_b, y_t, self.heads, self.query_out_channel)
 
+        # print("values: {}".format(values))
+        # print("keys: {}".format(keys))
+        # print("queries: {}".format(queries))
+
         # - fold heads into the batch dimension
         keys = keys.transpose(1, 2).contiguous().view(x_b * self.heads, x_t, self.key_out_channel)
         queries = queries.transpose(1, 2).contiguous().view(y_b * self.heads, y_t, self.query_out_channel)
@@ -50,16 +54,26 @@ class CrossAttention(nn.Module):
         # - Instead of dividing the dot products by sqrt(e), we scale the keys and values.
         #   This should be more memory efficient
 
+        # print("=" * 50)
+
+        # print("values: {}".format(values))
+        # print("keys: {}".format(keys))
+        # print("queries: {}".format(queries))
+
         # - get dot product of queries and keys, and scale
         dot = torch.bmm(queries, keys.transpose(1, 2))
+        # print("dot: {}".format(dot))
+        # print("-" * 50)
 
         assert dot.size() == (y_b * self.heads, y_t, x_t)
 
-        dot = F.softmax(dot, dim = 2)
+        dot = F.log_softmax(dot, dim = 2)
          # - dot now has row-wise self-attention probabilities
+        # print("dot: {}".format(dot))
 
         # apply the self attention to the values
         out = torch.bmm(dot, values).view(y_b, self.heads, y_t, self.value_out_channel)
         out = out.transpose(1, 2).contiguous().view(y_b, y_t, self.heads * self.value_out_channel)
+        # print("out: {}".format(out))
 
         return self.unifyheads(out)

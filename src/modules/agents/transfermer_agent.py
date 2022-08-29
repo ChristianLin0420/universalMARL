@@ -30,6 +30,9 @@ class Transfermer(nn.Module):
         self.encoder_indices = [i for i in range(1, args.action_space_size + self.max_entity_num)]
         self.decoder_indices = [i for i in range(1, args.action_space_size + self.max_enemy_num)]
 
+        # Mapping to target action spaces
+        self.map_action_embedding = nn.Linear(args.action_space_size + args.max_enemy_num, args.action_space_size + 3)
+
     def init_hidden(self):
         # make hidden states on same device as model
         if self.args.use_cuda:
@@ -86,6 +89,7 @@ class Transfermer(nn.Module):
         outputs, tokens = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, None)
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
+        q = self.map_action_embedding(q.reshape(-1, self.args.action_space_size + self.args.max_enemy_num))
         # last dim for hidden state
         h = tokens[:, -1:, :]
 
@@ -107,5 +111,11 @@ class Transfermer(nn.Module):
         self.decoder_query.requires_grad =  False
 
     def fixed_models_weight(self):
+        self.map_action_embedding = nn.Linear(self.args.action_space_size + self.args.max_enemy_num, self.args.action_space_size + self.args.enemy_num)
+
+        if self.args.use_cuda:
+            self.map_action_embedding.to(self.args.device)
+
         self.transformer.requires_grad = False
         self.action_embedding.requires_grad = False
+        self.map_action_embedding.requires_grad = True

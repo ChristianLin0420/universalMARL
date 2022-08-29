@@ -23,9 +23,9 @@ agent_models: [
 
 # --- SMAC Environment ---
 agents_enemies: {
-  "0": [3, 3],           # 3 marines vs 3 marines
+  # "0": [3, 3],           # 3 marines vs 3 marines
   # "1": [8, 8],           # 8 marines vs 8 marines
-  # "2": [8, 8]
+  "2": [8, 8]
 }
 
 # agents_enemies: {
