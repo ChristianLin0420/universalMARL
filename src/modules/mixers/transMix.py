@@ -11,7 +11,7 @@ class TransMixer(nn.Module):
         self.n_agents = args.n_agents
         self.state_dim = int(np.prod(args.state_shape))
 
-        self.input_size = 6
+        self.input_size = args.token_dim + 1
 
         self.token_embedding = nn.Linear(self.input_size, args.emb)
         self.attention = nn.Linear(args.emb, args.emb)

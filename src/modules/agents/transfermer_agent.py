@@ -27,8 +27,8 @@ class Transfermer(nn.Module):
         self.action_embedding = nn.Linear(args.emb, 1)
 
         # helper
-        self.encoder_indices = [i for i in range(1, args.action_space_size + self.max_entity_num)]
-        self.decoder_indices = [i for i in range(1, args.action_space_size + self.max_enemy_num)]
+        self.encoder_indices = [i for i in range(1, args.action_space_size + self.max_entity_num + 1)]
+        self.decoder_indices = [i for i in range(self.args.action_space_size + 1, args.action_space_size + self.max_enemy_num + 1)]
 
         # Mapping to target action spaces
         if args.checkpoint_path == "":
@@ -53,12 +53,18 @@ class Transfermer(nn.Module):
         if self.args.random_inputs:
             shuffle(indices)
 
-            query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
+            if encoder_input:
+                query[:, :1, :] = inputs[:, :1, :]  # agent fix at first position
 
-            for i in range(self.args.ally_num - 1):
+            agent_count = self.args.ally_num - 1 if encoder_input else self.args.enemy_num
+
+            for i in range(agent_count):
                 query[:, indices[i]-1:indices[i], :] = inputs[:, i:i+1, :] # ally
         else:
-            query[:, :self.args.ally_num, :] = inputs
+            if encoder_input:
+                query[:, :self.args.ally_num, :] = inputs
+            else:
+                query[:, self.args.action_space_size:self.args.action_space_size + self.args.enemy_num, :] = inputs
 
         return query
 

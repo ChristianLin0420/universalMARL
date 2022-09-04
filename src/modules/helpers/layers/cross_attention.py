@@ -67,7 +67,7 @@ class CrossAttention(nn.Module):
 
         assert dot.size() == (y_b * self.heads, y_t, x_t)
 
-        dot = F.log_softmax(dot, dim = 2)
+        dot = F.softmax(dot, dim = 2)
          # - dot now has row-wise self-attention probabilities
         # print("dot: {}".format(dot))
 

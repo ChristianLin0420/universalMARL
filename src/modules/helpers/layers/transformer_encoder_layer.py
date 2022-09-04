@@ -13,7 +13,7 @@ class EncoderLayer(nn.Module):
 
         self.ffn = nn.Sequential(
             nn.Linear(emb, ff_hidden_mult * emb),
-            nn.GELU(),
+            nn.RELU(),
             nn.Linear(ff_hidden_mult * emb, emb)
         )
 
