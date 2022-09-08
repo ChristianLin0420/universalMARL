@@ -19,9 +19,14 @@ class AdaptiveMixer(nn.Module):
         self.hyper_net = Decoder(args, False, 0.0)
         self.hyper_b = nn.Linear(self.state_dim, args.emb)
 
+        if self.args.checkpoint_path != "":
+            self.adaptive_output_size = self.args.min_ally_num
+        else:
+            self.adaptive_output_size = self.n_agents
+
         self.adaptive_net = nn.Sequential(nn.Linear(self.state_dim,  args.emb),
                                           nn.ReLU(),
-                                          nn.Linear(args.emb, self.args.min_ally_num))
+                                          nn.Linear(args.emb, self.adaptive_output_size))
 
         self.adaptive_final_net = nn.Sequential(nn.Linear(self.state_dim, args.emb), 
                                                 nn.ReLU(),
