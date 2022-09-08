@@ -186,6 +186,10 @@ class TransLearner:
         
         if self.mixer is not None:
             self.mixer.load_state_dict(th.load("{}/mixer.th".format(path), map_location=lambda storage, loc: storage))
+
+            if self.args.mixer == "adaptivemix":
+                self.mixer.new_adaptive_layer()
+
         self.optimiser.load_state_dict(th.load("{}/opt.th".format(path), map_location=lambda storage, loc: storage))
         self.mixing_query = th.load("{}/mixing_query.pt".format(path), map_location=lambda storage, loc: storage)
         self.mixing_query.requires_grad =  False

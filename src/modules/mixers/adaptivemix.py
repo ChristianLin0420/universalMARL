@@ -40,14 +40,14 @@ class AdaptiveMixer(nn.Module):
         padding = th.zeros(previous_actions.size(0), self.n_agents, padding_size)
 
         if self.args.use_cuda:
-            padding.cuda()
+            padding = padding.cuda()
 
         previous_actions = th.cat([previous_actions, padding], axis = -1)
 
         if self.args.use_cuda:
-            current_states.cuda()
-            current_observations.cuda()
-            previous_actions.cuda()
+            current_states = current_states.cuda()
+            current_observations = current_observations.cuda()
+            previous_actions = previous_actions.cuda()
 
         a_emb = self.action_embedding(previous_actions)
         o_emb = self.observation_embedding(current_observations)
