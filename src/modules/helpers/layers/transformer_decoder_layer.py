@@ -17,7 +17,7 @@ class DecoderLayer(nn.Module):
 
         self.ffn = nn.Sequential(
             nn.Linear(emb, ff_hidden_mult * emb),
-            nn.RELU(),
+            nn.ReLU(),
             nn.Linear(ff_hidden_mult * emb, emb)
         )
 

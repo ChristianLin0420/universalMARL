@@ -18,7 +18,7 @@ class TransMixer(nn.Module):
         self.q_basic = nn.Linear(args.emb, 1)
         self.total_q = nn.Linear(args.max_mixing_size, 1)
 
-    def forward(self, agent_qs, states):
+    def forward(self, agent_qs, states, observations):
         bs = agent_qs.size(0)
 
         if self.args.use_cuda:

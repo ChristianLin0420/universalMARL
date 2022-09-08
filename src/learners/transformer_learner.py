@@ -1,6 +1,7 @@
 import copy
 from components.episode_buffer import EpisodeBatch
 from modules.mixers.transMix import TransMixer
+from modules.mixers.adaptivemix import AdaptiveMixer
 import torch as th
 import torch.nn as nn
 from torch.optim import RMSprop
@@ -30,6 +31,8 @@ class TransLearner:
         if args.mixer is not None:
             if args.mixer == "transmix":
                 self.mixer = TransMixer(args)
+            if args.mixer == "adaptivemix":
+                self.mixer = AdaptiveMixer(args)
             else:
                 raise ValueError("Mixer {} not recognised.".format(args.mixer))
             self.params += list(self.mixer.parameters())
@@ -85,8 +88,10 @@ class TransLearner:
 
         # Pick the Q-Values for the actions taken by each agent
         chosen_action_qvals = th.gather(mac_out[:, :-1], dim=3, index=actions)  # Remove the last dim
-        chosen_action_qvals = th.cat([chosen_action_qvals, observations[:, :, :, :5]], dim = 3)
-        chosen_action_qvals = self.expand_inputs(chosen_action_qvals, self.args.random_inputs)
+        
+        if self.args.mixer == "transmix":
+            chosen_action_qvals = th.cat([chosen_action_qvals, observations[:, :, :, :5]], dim = 3)
+            chosen_action_qvals = self.expand_inputs(chosen_action_qvals, self.args.random_inputs)
 
         # Calculate the Q-Values necessary for the target
         target_mac_out = []
@@ -108,15 +113,17 @@ class TransLearner:
             mac_out_detach[avail_actions == 0] = -9999999
             cur_max_actions = mac_out_detach[:, 1:].max(dim=3, keepdim=True)[1]
             target_max_qvals = th.gather(target_mac_out, 3, cur_max_actions)
-            target_max_qvals = th.cat([target_max_qvals, observations[:, :, :, :5]], dim = 3)
-            target_max_qvals = self.expand_inputs(target_max_qvals, self.args.random_inputs)
+
+            if self.args.mixer == "transmix":
+                target_max_qvals = th.cat([target_max_qvals, observations[:, :, :, :5]], dim = 3)
+                target_max_qvals = self.expand_inputs(target_max_qvals, self.args.random_inputs)
         else:
             target_max_qvals = target_mac_out.max(dim=3)[0]
 
         # Mix
         if self.mixer is not None:
-            chosen_action_qvals = self.mixer(chosen_action_qvals, batch["state"][:, :-1])
-            target_max_qvals = self.target_mixer(target_max_qvals, batch["state"][:, 1:])
+            chosen_action_qvals = self.mixer(chosen_action_qvals, batch["state"][:, :-1], observations[:, :, :, :5])
+            target_max_qvals = self.target_mixer(target_max_qvals, batch["state"][:, 1:], observations[:, :, :, :5])
 
         # Calculate 1-step Q-Learning targets
         targets = rewards + self.args.gamma * (1 - terminated) * target_max_qvals

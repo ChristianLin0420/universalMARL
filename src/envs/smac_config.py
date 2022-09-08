@@ -77,17 +77,6 @@ def get_smac_map_config(env_name):
 
     assert smac_maps_entities[env_name] is not None
 
-    # return {
-    #     "ally_num": smac_maps_entities[env_name][0], 
-    #     "enemy_num": smac_maps_entities[env_name][1],
-    #     "enemy_feature": 7,
-    #     "own_feature": 7,
-    #     "token_dim": 7,
-    #     "env_args": {
-    #         "map_name": env_name
-    #     }
-    # }
-
     return {
         "ally_num": smac_maps_entities[env_name][0], 
         "enemy_num": smac_maps_entities[env_name][1],
@@ -102,12 +91,8 @@ def get_smac_map_config(env_name):
 def get_entity_extra_information(identity, role):
     return [entity_identity[identity], entity_role[role]]
 
-# from __future__ import absolute_import
-# from __future__ import division
-# from __future__ import print_function
 
 from pysc2.maps import lib
-
 
 class SMACMap(lib.Map):
     directory = "SMAC_Maps"
