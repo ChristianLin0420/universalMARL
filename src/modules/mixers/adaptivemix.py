@@ -38,6 +38,10 @@ class AdaptiveMixer(nn.Module):
         # action padding
         padding_size = self.args.action_context_length - self.action_dim
         padding = th.zeros(previous_actions.size(0), self.n_agents, padding_size)
+
+        if self.args.use_cuda:
+            padding.cuda()
+
         previous_actions = th.cat([previous_actions, padding], axis = -1)
 
         if self.args.use_cuda:
