@@ -16,7 +16,7 @@ class Decoder(nn.Module):
                                                   heads=args.heads,
                                                   mask=mask,
                                                   dropout=drop_prob)
-                                     for _ in range(args.depth)])
+                                     for _ in range(1)])
 
 
     def forward(self, d, enc_src, trg_mask, src_mask, len, position_emb = True):
