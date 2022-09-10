@@ -59,7 +59,7 @@ class AdaptiveMixer(nn.Module):
         h_emb = self.hyper_net(o_emb, a_emb, None, None, 0, False)
         h_b = self.hyper_b(current_states).view(-1, self.args.emb, 1)
         hidden = th.bmm(h_emb, h_b).view(-1, 1, self.n_agents)
-        hidden = F.softmax(hidden, dim = -1)
+        hidden = F.normalize(hidden, dim = -1)
 
         adaptive = self.adaptive_net(current_states).view(-1, self.n_agents, 1)
         adaptive_final = self.adaptive_final_net(current_states).view(-1, 1, 1)
