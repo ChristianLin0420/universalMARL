@@ -34,13 +34,10 @@ class TrackFormer(nn.Module):
         if self.previous_encoder_output is not None and self.previous_encoder_output.size(0) == tokens.size(0):
             encoder_input = torch.cat((self.previous_encoder_output, tokens), -1)
         else:
-            zero_padding = torch.zeros(b, l, e)
+            zero_padding = torch.zeros(b, l, e) if not self.args.use_cuda else torch.zeros(b, l, e).cuda()
             encoder_input = torch.cat((zero_padding, tokens), -1)
 
         self.previous_encoder_output = tokens
-
-        if self.args.use_cuda:
-            encoder_input = encoder_input.cuda()
 
         encode_out = self.encoder(encoder_input, mask)
         encode_out = self.encoder_embedding(encode_out)
@@ -52,11 +49,8 @@ class TrackFormer(nn.Module):
         if self.previous_decoder_output is not None and self.previous_decoder_output.size(0) == tokens.size(0):
             decoder_input = torch.cat((self.previous_decoder_output, tokens), -1)
         else:
-            zero_padding = torch.zeros(b, l, e)
+            zero_padding = torch.zeros(b, l, e) if not self.args.use_cuda else torch.zeros(b, l, e).cuda()
             decoder_input = torch.cat((zero_padding, tokens), -1)
-
-        if self.args.use_cuda:
-            decoder_input = decoder_input.cuda()
 
         decode_out = self.decoder(decoder_input, encode_out, mask, mask, self.args.max_agents_len, False)
         decode_out = self.decoder_embedding(decode_out)
