@@ -6,10 +6,10 @@ parallel: False
 
 mixing_networks: [
   # "vdn",
-  # "qmix",
+  "qmix",
   # "qtran",
   # "transmix",
-  "adaptivemix"
+  # "adaptivemix"
 ]
 
 agent_models: [
@@ -18,8 +18,9 @@ agent_models: [
   # "vanilla_transformer",
   # "dummy_transformer",
   # "dummy_updet",
-  "transfermer", 
-  # "perceiver_io"
+  # "transfermer", 
+  # "perceiver_io", 
+  "trackformer"
 ]
 
 # --- SMAC Environment ---

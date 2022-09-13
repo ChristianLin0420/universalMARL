@@ -4,14 +4,16 @@ from .self_attention import SelfAttention
 
 class DecoderLayer(nn.Module):
 
-    def __init__(self, emb, heads, mask, ff_hidden_mult=2, dropout=0.0):
+    def __init__(self, args, emb, heads, mask, ff_hidden_mult=2, dropout=0.0):
         super(DecoderLayer, self).__init__()
+
+        self.args = args
         
-        self.attention = SelfAttention(emb, heads=heads, mask=mask)
+        self.attention = SelfAttention(args, emb, heads=heads, mask=mask)
         self.norm1 = nn.LayerNorm(emb)
         self.drop1 = nn.Dropout(dropout)
 
-        self.enc_dec_attention = SelfAttention(emb, heads=heads, mask=mask)
+        self.enc_dec_attention = SelfAttention(args, emb, heads=heads, mask=mask, cross=True)
         self.norm2 = nn.LayerNorm(emb)
         self.drop2 = nn.Dropout(dropout)
 
@@ -34,7 +36,7 @@ class DecoderLayer(nn.Module):
         if enc is not None:
             _x = x
             b, t, e = x.size()
-            x = self.enc_dec_attention(x, s_mask, enc)
+            x = self.enc_dec_attention(x, s_mask, enc) if self.args.agent != "trackformer" else self.enc_dec_attention(enc, s_mask, x)
             x = self.norm2(x[:, :t, :] + _x)
             x = self.drop2(x)
 

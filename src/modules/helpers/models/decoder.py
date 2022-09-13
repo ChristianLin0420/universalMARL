@@ -12,7 +12,8 @@ class Decoder(nn.Module):
 
         self.posit_emb = PositionalEncoding(args.emb, args.max_len, args.device)
 
-        self.layers = nn.ModuleList([DecoderLayer(emb=args.emb,
+        self.layers = nn.ModuleList([DecoderLayer(args=args,
+                                                  emb=args.emb,
                                                   heads=args.heads,
                                                   mask=mask,
                                                   dropout=drop_prob)

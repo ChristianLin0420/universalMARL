@@ -10,7 +10,8 @@ class Encoder(nn.Module):
         super().__init__()
         self.posit_emb = PositionalEncoding(args.emb, args.max_len, args.device)
 
-        self.layers = nn.ModuleList([EncoderLayer(emb=args.emb,
+        self.layers = nn.ModuleList([EncoderLayer(args=args,
+                                                  emb=args.emb,
                                                   heads=args.heads,
                                                   mask=mask,
                                                   dropout=drop_prob)

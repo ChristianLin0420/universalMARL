@@ -4,10 +4,10 @@ from .self_attention import SelfAttention
 
 class EncoderLayer(nn.Module):
 
-    def __init__(self, emb, heads, mask, ff_hidden_mult=4, dropout=0.0):
+    def __init__(self, args, emb, heads, mask, ff_hidden_mult=4, dropout=0.0):
         super(EncoderLayer, self).__init__()
         
-        self.attention = SelfAttention(emb, heads=heads, mask=mask)
+        self.attention = SelfAttention(args, emb, heads=heads, mask=mask)
         self.norm1 = nn.LayerNorm(emb)
         self.drop1 = nn.Dropout(dropout)
 

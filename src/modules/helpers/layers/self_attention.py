@@ -4,17 +4,22 @@ import torch.nn.functional as F
 import torch
 
 class SelfAttention(nn.Module):
-    def __init__(self, emb, heads=8, mask=False):
+    def __init__(self, args, emb, heads=8, mask=False, cross=False):
 
         super().__init__()
 
+        self.args = args
         self.emb = emb
         self.heads = heads
         self.mask = mask
 
-        self.tokeys = nn.Linear(emb, emb * heads, bias=False)
-        self.toqueries = nn.Linear(emb, emb * heads, bias=False)
-        self.tovalues = nn.Linear(emb, emb * heads, bias=False)
+        key_in  = emb // 2 if args.agent == "trackformer" and cross else emb
+        query_in = emb 
+        value_in = key_in
+
+        self.tokeys = nn.Linear(key_in, emb * heads, bias=False)
+        self.toqueries = nn.Linear(query_in, emb * heads, bias=False)
+        self.tovalues = nn.Linear(value_in, emb * heads, bias=False)
 
         self.unifyheads = nn.Linear(heads * emb, emb)
 
@@ -22,6 +27,9 @@ class SelfAttention(nn.Module):
 
         b, t, e = x.size()
         h = self.heads
+
+        if self.args.agent == "trackformer":
+            e = self.emb
 
         if encoder_output is not None:
             bq, tq, eq = encoder_output.size()
@@ -39,7 +47,6 @@ class SelfAttention(nn.Module):
         # print("queries: {}".format(queries))
 
         # compute scaled dot-product self-attention
-
         # - fold heads into the batch dimension
         keys = keys.transpose(1, 2).contiguous().view(b * h, t, e)
         queries = queries.transpose(1, 2).contiguous().view(b * h, tq, e)

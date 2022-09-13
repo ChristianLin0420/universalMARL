@@ -6,10 +6,10 @@ from modules.helpers.layers.self_attention import SelfAttention
 
 class TransformerBlock(nn.Module):
 
-    def __init__(self, emb, heads, mask, ff_hidden_mult=4, dropout=0.0):
+    def __init__(self, args, emb, heads, mask, ff_hidden_mult=4, dropout=0.0):
         super().__init__()
 
-        self.attention = SelfAttention(emb, heads=heads, mask=mask)
+        self.attention = SelfAttention(args, emb, heads=heads, mask=mask)
         self.mask = mask
 
         self.norm1 = nn.LayerNorm(emb)
@@ -43,7 +43,7 @@ class TransformerBlock(nn.Module):
 
 class Transformer(nn.Module):
 
-    def __init__(self, input_dim, emb, heads, depth, output_dim):
+    def __init__(self, args, input_dim, emb, heads, depth, output_dim):
         super().__init__()
 
         self.num_tokens = output_dim
@@ -53,7 +53,7 @@ class Transformer(nn.Module):
         tblocks = []
         for i in range(depth):
             tblocks.append(
-                TransformerBlock(emb=emb, heads=heads, mask=False))
+                TransformerBlock(args=args, emb=emb, heads=heads, mask=False))
 
         self.tblocks = nn.Sequential(*tblocks)
 
