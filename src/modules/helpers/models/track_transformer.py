@@ -39,6 +39,9 @@ class TrackFormer(nn.Module):
 
         self.previous_encoder_output = tokens
 
+        if self.args.use_cuda:
+            encoder_input = encoder_input.cuda()
+
         encode_out = self.encoder(encoder_input, mask)
         encode_out = self.encoder_embedding(encode_out)
 
@@ -51,6 +54,9 @@ class TrackFormer(nn.Module):
         else:
             zero_padding = torch.zeros(b, l, e)
             decoder_input = torch.cat((zero_padding, tokens), -1)
+
+        if self.args.use_cuda:
+            decoder_input = decoder_input.cuda()
 
         decode_out = self.decoder(decoder_input, encode_out, mask, mask, self.args.max_agents_len, False)
         decode_out = self.decoder_embedding(decode_out)
