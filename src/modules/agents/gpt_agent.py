@@ -52,7 +52,7 @@ class GPTAgent(nn.Module):
         # last dim for hidden state
         h = tokens[:, -1:, :]
 
-        return q, h
+        return q[:, :-1, :], q[:, -1:, :]
 
     def fixed_models_weight(self):
         self.transformer.requires_grad =  False

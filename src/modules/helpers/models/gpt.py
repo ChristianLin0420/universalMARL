@@ -47,6 +47,6 @@ class GPT(nn.Module):
         decode_out = self.decoder(cross_input, decode_input, mask, mask, self.args.max_agents_len, False)
         actions_out = self.decoder_embedding(decode_out)
 
-        return actions_out[:, :-1, :], decode_out[:, -1:, :]
+        return actions_out, decode_out[:, -1:, :]
 
 
