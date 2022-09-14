@@ -50,9 +50,9 @@ class GPTAgent(nn.Module):
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
         # last dim for hidden state
-        h = tokens[:, -1:, :]
+        h = outputs[:, -1:, :]
 
-        return q[:, :-1, :], q[:, -1:, :]
+        return q[:, :-1, :], h
 
     def fixed_models_weight(self):
         self.transformer.requires_grad =  False
