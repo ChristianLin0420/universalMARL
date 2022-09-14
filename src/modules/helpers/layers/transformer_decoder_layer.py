@@ -36,7 +36,7 @@ class DecoderLayer(nn.Module):
         if enc is not None:
             _x = x
             b, t, e = x.size()
-            x = self.enc_dec_attention(x, s_mask, enc) if self.args.agent != "trackformer" else self.enc_dec_attention(enc, s_mask, x)
+            x = self.enc_dec_attention(enc, s_mask, x) if self.args.agent in ["trackformer", "gpt"] else self.enc_dec_attention(x, s_mask, enc)
             x = self.norm2(x[:, :t, :] + _x)
             x = self.drop2(x)
 
