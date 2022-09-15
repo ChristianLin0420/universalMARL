@@ -13,7 +13,7 @@ class PerceiverIODecoderLayer(nn.Module):
                                             args.value_out_channel * 2, 
                                             args.value_out_channel, 
                                             args.query_out_channel * 2, 
-                                            args.latent_embedding_size, 
+                                            emb, 
                                             args.query_out_channel * 2, 
                                             args.heads  )
         
