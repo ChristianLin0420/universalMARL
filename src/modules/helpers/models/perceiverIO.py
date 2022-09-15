@@ -53,7 +53,7 @@ class PerceiverIO(nn.Module):
 
         query = self.token_embedding(query)
         
-        x = self.decoder(x, query).view(b, self.args.action_space_size + self.args.enemy_num, self.args.query_out_channel)
+        x = self.decoder(x, query).view(b, self.args.action_space_size + self.args.enemy_num, self.args.query_out_channel * 2)
 
         return x, hidden
 
