@@ -15,7 +15,7 @@ class PerceiverIOAgent(nn.Module):
         self.perceiverIO = PerceiverIO(args)
 
         # Output optimal action
-        self.action_embedding = nn.Linear(args.query_out_channel, 1)
+        self.action_embedding = nn.Linear(args.emb, 1)
 
     def init_hidden(self):
         # make hidden states on same device as model
