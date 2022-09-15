@@ -9,12 +9,12 @@ class PerceiverIODecoderLayer(nn.Module):
 
         self.args = args
 
-        self.attention = CrossAttention(    args.emb, 
+        self.attention = CrossAttention(    args.value_out_channel, 
+                                            args.value_out_channel * 2, 
                                             args.value_out_channel, 
-                                            args.emb, 
-                                            args.query_out_channel, 
+                                            args.query_out_channel * 2, 
                                             args.latent_embedding_size, 
-                                            args.query_out_channel, 
+                                            args.query_out_channel * 2, 
                                             args.heads  )
         
         self.ffn = nn.Sequential(
