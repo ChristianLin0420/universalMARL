@@ -16,7 +16,7 @@ class PerceiverIOProcessLayer(nn.Module):
         self.ffn = nn.Sequential(
             nn.Linear(args.latent_embedding_size, ff_hidden_mult * args.latent_embedding_size),
             nn.ReLU(),
-            nn.Linear(ff_hidden_mult * args.latent_embedding_size, args.latent_embedding_size)
+            nn.Linear(ff_hidden_mult * args.latent_embedding_size, args.latent_embedding_size * 2)
         )
 
         self.norm2 = nn.LayerNorm(args.latent_embedding_size)
