@@ -17,16 +17,16 @@ class PerceiverIOEncoderLayer(nn.Module):
                                             args.query_out_channel, 
                                             args.heads  )
         
-        self.norm1 = nn.LayerNorm(emb)
+        self.norm1 = nn.LayerNorm(args.latent_embedding_size)
         self.drop1 = nn.Dropout(dropout)
 
         self.ffn = nn.Sequential(
-            nn.Linear(emb, ff_hidden_mult * emb),
+            nn.Linear(args.latent_embedding_size, ff_hidden_mult * args.latent_embedding_size),
             nn.ReLU(),
-            nn.Linear(ff_hidden_mult * emb, emb)
+            nn.Linear(ff_hidden_mult * args.latent_embedding_size, args.latent_embedding_size)
         )
 
-        self.norm2 = nn.LayerNorm(emb)
+        self.norm2 = nn.LayerNorm(args.latent_embedding_size)
         self.drop2 = nn.Dropout(dropout)
 
     def forward(self, dec, enc):
