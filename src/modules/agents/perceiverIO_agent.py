@@ -15,10 +15,7 @@ class PerceiverIOAgent(nn.Module):
         self.perceiverIO = PerceiverIO(args)
 
         # Output optimal action
-        self.action_embedding = nn.Linear(args.key_out_channel, 1)
-
-        # Hidden embedding
-        self.hidden_embedding = nn.Linear(args.key_out_channel, args.emb)
+        self.action_embedding = nn.Linear(args.query_out_channel, 1)
 
     def init_hidden(self):
         # make hidden states on same device as model
@@ -54,13 +51,13 @@ class PerceiverIOAgent(nn.Module):
             encoder_inputs = encoder_inputs.cuda()
             decoder_inputs = decoder_inputs.cuda()
 
-        outputs = self.perceiverIO(encoder_inputs, hidden_state, decoder_inputs)
+        outputs, hidden = self.perceiverIO(encoder_inputs, hidden_state, decoder_inputs)
 
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
         
         # last dim for hidden state
-        h = self.hidden_embedding(outputs[:, -1:, :].view(-1, self.args.key_out_channel)).view(b, 1, self.args.emb)
+        h = hidden[:, -1:, :]
 
-        return q[:, :-1, :], h
+        return q, h
         

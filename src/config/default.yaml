@@ -58,12 +58,12 @@ random_encoder_inputs_zero: False
 random_mixing_inputs_zero: False
 
 # --- PerceiverIO parameters ---
-value_in_channel: 64
-value_out_channel: 64
-key_in_channel: 32
-key_out_channel: 32
-query_in_channel: 32
-query_out_channel: 64
+value_in_channel: 32
+value_out_channel: 32
+key_in_channel: 16
+key_out_channel: 16
+query_in_channel: 16
+query_out_channel: 32
 latent_length: 6
 latent_embedding_size: 32
 

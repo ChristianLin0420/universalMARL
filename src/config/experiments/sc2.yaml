@@ -19,9 +19,9 @@ agent_models: [
   # "dummy_transformer",
   # "dummy_updet",
   # "transfermer", 
-  # "perceiver_io", 
+  "perceiver_io", 
   # "trackformer", 
-  "gpt"
+  # "gpt"
 ]
 
 # --- SMAC Environment ---

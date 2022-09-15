@@ -42,10 +42,6 @@ class SelfAttention(nn.Module):
             queries = self.toqueries(x).view(b, tq, h, e)
             values = self.tovalues(x).view(b, t, h, e)
 
-        # print("values: {}".format(values))
-        # print("keys: {}".format(keys))
-        # print("queries: {}".format(queries))
-
         # compute scaled dot-product self-attention
         # - fold heads into the batch dimension
         keys = keys.transpose(1, 2).contiguous().view(b * h, t, e)
@@ -57,16 +53,8 @@ class SelfAttention(nn.Module):
         # - Instead of dividing the dot products by sqrt(e), we scale the keys and values.
         #   This should be more memory efficient
 
-        # print("=" * 50)
-
-        # print("values: {}".format(values))
-        # print("keys: {}".format(keys))
-        # print("queries: {}".format(queries))
-
         # - get dot product of queries and keys, and scale
         dot = torch.bmm(queries, keys.transpose(1, 2))
-        # print("dot: {}".format(dot))
-        # print("-" * 50)
 
         assert dot.size() == (b * h, tq, t)
 
@@ -78,14 +66,12 @@ class SelfAttention(nn.Module):
 
         dot = F.softmax(dot, dim=2)
         # - dot now has row-wise self-attention probabilities
-        # print("dot: {}".format(dot))
 
         # apply the self attention to the values
         out = torch.bmm(dot, values).view(b, h, tq, e)
 
         # swap h, t back, unify heads
         out = out.transpose(1, 2).contiguous().view(b, tq, h * e)
-        # print("out: {}".format(out))
 
         return self.unifyheads(out)
 
