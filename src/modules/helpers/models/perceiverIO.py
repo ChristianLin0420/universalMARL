@@ -26,6 +26,7 @@ class PerceiverIO(nn.Module):
 
         # Encoder
         self.encoder = PerceiverIOEncoderLayer(args, args.emb)
+        self.hidden_embedding = nn.Linear(args.latent_embedding_size, args.emb)
 
         # Process
         self.process = nn.ModuleList([PerceiverIOProcessLayer(args, args.emb) for _ in range(args.depth)] )
@@ -46,7 +47,7 @@ class PerceiverIO(nn.Module):
         latent = torch.repeat_interleave(torch.unsqueeze(self.latent, dim = 0), b, dim = 0)
 
         x = self.encoder(tokens, latent)
-        hidden = x
+        hidden = self.hidden_embedding(x)
 
         for layer in self.process:
             x = layer(x)
