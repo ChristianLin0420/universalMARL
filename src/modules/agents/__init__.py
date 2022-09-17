@@ -27,6 +27,9 @@ REGISTRY['axial_transformer'] = AxialTransformerAgent
 from .perceiverIO_agent import PerceiverIOAgent
 REGISTRY['perceiver_io'] = PerceiverIOAgent
 
+from .perceiverIOplus_agent import PerceiverIOplusAgent
+REGISTRY['perceiver++'] = PerceiverIOplusAgent
+
 from .trackformer_agent import TrackformerAgent
 REGISTRY['trackformer'] = TrackformerAgent
 
@@ -41,5 +44,6 @@ TRANSFORMERbasedAgent = [   'updet',
                             'dummy_transformer', 
                             'transfermer', 
                             'perceiver_io', 
+                            'perceiver++',
                             'trackformer', 
                             'gpt'   ]
