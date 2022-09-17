@@ -16,7 +16,7 @@ class PerceiverIO(nn.Module):
         self.emb = args.emb
 
         # learnable initial latent vectors
-        self.latent = nn.Parameter(torch.empty(args.latent_length, args.process_out))
+        self.latent = nn.Parameter(torch.empty(args.latent_length, args.encode_out))
         self._init_parameters(0.02)
 
         # Embedding
