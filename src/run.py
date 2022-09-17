@@ -35,12 +35,11 @@ def run(_run, _config, _log):
     _log.info("\n\n" + experiment_params + "\n")
 
     # configure tensorboard logger
-    unique_token = "{}__{}".format(args.name, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    unique_token = "{}__{}__{}".format(args.name, args.agent, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     args.unique_token = unique_token
     if args.use_tensorboard:
-        tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", args.experiment, "tb_logs", args.env, args.task_dir)
+        tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", args.experiment, "tb_logs", args.env, args.map_name, args.task_dir)
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
-        print("tb_exp_direc: {}".format(tb_exp_direc))
         logger.setup_tb(tb_exp_direc)
 
     # sacred is on by default
@@ -206,9 +205,7 @@ def run_sequential(args, logger):
                 runner.run(test_mode=True)
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
-            # model_save_time = runner.t_env
-            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.task_dir, args.unique_token, str(runner.t_env))
-            #"results/models/{}".format(unique_token)
+            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.map_name, args.task_dir, args.unique_token, str(runner.t_env))
             os.makedirs(save_path, exist_ok = True)
             logger.console_logger.info("Saving models to {}".format(save_path))
 

@@ -5,6 +5,7 @@ experiment: "experiment test"
 runner: "episode" # Runs 1 env for an episode
 mac: "basic_mac" # Basic controller
 env: "sc2"
+map_name: "5m_vs_6m"
 env_args: {} # Arguments for the environment
 batch_size_run: 1 # Number of environments to run in parallel
 test_nepisode: 20 # Number of episodes to test for
@@ -58,14 +59,16 @@ random_encoder_inputs_zero: False
 random_mixing_inputs_zero: False
 
 # --- PerceiverIO parameters ---
-value_in_channel: 32
-value_out_channel: 32
-key_in_channel: 16
-key_out_channel: 16
-query_in_channel: 16
-query_out_channel: 32
-latent_length: 6
-latent_embedding_size: 32
+mapping_scalar: 4
+
+# latent #
+latent_length: 4
+# Encode #
+encode_out: 8 
+# Process #
+process_out: 8 
+# Decode # 
+decode_out: 32 
 
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).

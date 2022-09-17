@@ -9,7 +9,7 @@ class PerceiverIOAgent(nn.Module):
         super(PerceiverIOAgent, self).__init__()
 
         self.args = args
-        self.decoder_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0)
+        self.action_query = nn.Parameter(torch.rand(args.action_space_size, args.token_dim))
 
         # perceiverIO
         self.perceiverIO = PerceiverIO(args)
@@ -23,6 +23,17 @@ class PerceiverIOAgent(nn.Module):
             return torch.zeros(1, self.args.emb).cuda()
         else:
             return torch.zeros(1, self.args.emb)
+    
+    def save_query(self, path):
+        torch.save(self.action_query, "{}/action_query.pt".format(path))
+
+    def load_query(self, path):
+        self.action_query = torch.load("{}/action_query.pt".format(path))
+
+        if self.args.use_cuda:
+            self.action_query = self.action_query.cuda()
+
+        self.action_query.requires_grad =  False
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
         
@@ -44,7 +55,7 @@ class PerceiverIOAgent(nn.Module):
         encoder_inputs = new[:, :task_ally_num, :]
         decoder_inputs = new[:, task_ally_num:, :]
 
-        query = torch.repeat_interleave(self.decoder_query, b, dim = 0)
+        query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
         decoder_inputs = torch.cat([query, decoder_inputs], dim = 1)
 
         if self.args.use_cuda:
@@ -60,4 +71,8 @@ class PerceiverIOAgent(nn.Module):
         h = hidden[:, -1:, :]
 
         return q, h
+
+    def fixed_models_weight(self):
+        self.perceiverIO.requires_grad = False
+        self.action_embedding.requires_grad = True
         

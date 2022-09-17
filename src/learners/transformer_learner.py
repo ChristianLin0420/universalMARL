@@ -73,11 +73,6 @@ class TransLearner:
         mask[:, 1:] = mask[:, 1:] * (1 - terminated[:, :-1])
         avail_actions = batch["avail_actions"]
 
-        # print("rewards: {}".format(rewards.size()))
-        # print("actions: {}".format(actions.size()))
-        # print("observations: {}".format(observations.size()))
-        # print("terminated: {}".format(terminated.size()))
-
         # Calculate estimated Q-Values
         mac_out = []
         self.mac.init_hidden(batch.batch_size)
@@ -162,7 +157,6 @@ class TransLearner:
         self.target_mac.load_state(self.mac)
         if self.mixer is not None:
             self.target_mixer.load_state_dict(self.mixer.state_dict())
-        # self.logger.console_logger.info("Updated target network")
 
     def cuda(self):
         self.mac.cuda()

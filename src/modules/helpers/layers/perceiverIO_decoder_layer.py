@@ -9,31 +9,36 @@ class PerceiverIODecoderLayer(nn.Module):
 
         self.args = args
 
-        self.attention = CrossAttention(    args.value_out_channel, 
-                                            args.value_out_channel * 2, 
-                                            args.value_out_channel, 
-                                            args.query_out_channel * 2, 
+        self.attention = CrossAttention(    args.process_out, 
+                                            args.decode_out, 
+                                            args.process_out, 
+                                            args.decode_out, 
                                             emb, 
-                                            args.query_out_channel * 2, 
+                                            args.decode_out, 
                                             args.heads  )
+
+        self.norm1 = nn.LayerNorm(args.decode_out)
+        self.drop1 = nn.Dropout(dropout)
         
         self.ffn = nn.Sequential(
-            nn.Linear(emb, ff_hidden_mult * emb),
+            nn.Linear(args.decode_out, ff_hidden_mult * emb),
             nn.ReLU(),
             nn.Linear(ff_hidden_mult * emb, emb)
         )
 
-        self.norm1 = nn.LayerNorm(emb)
-        self.drop1 = nn.Dropout(dropout)
+        self.norm2 = nn.LayerNorm(emb)
+        self.drop2 = nn.Dropout(dropout)
 
     def forward(self, dec, enc):
-        _x = dec
+        _x = enc
         x = self.attention(dec, enc)
+        x = self.norm1(x + _x)
+        x = self.drop1(x)
 
         _x = x
         x = self.ffn(x)
         
-        x = self.norm1(x + _x)
-        x = self.drop1(x)
+        x = self.norm2(x + _x)
+        x = self.drop2(x)
 
         return x

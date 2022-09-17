@@ -26,7 +26,7 @@ class CrossAttention(nn.Module):
         self.values = nn.Linear(value_in_channel, value_out_channel * heads, bias = False)
         self.keys = nn.Linear(key_in_channel, key_out_channel * heads, bias = False)
         self.querys = nn.Linear(query_in_channel, query_out_channel * heads, bias = False)
-        self.unifyheads = nn.Linear(value_out_channel * heads, query_out_channel)
+        self.unifyheads = nn.Linear(value_out_channel * heads, value_out_channel)
 
     def forward(self, x, y):
 

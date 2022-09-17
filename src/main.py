@@ -122,7 +122,6 @@ def auto(params):
     parallel_env = "_beta" if ex_config["parallel"] and ex_config["env"] == "sc2" else ""
     mixing_networks = ex_config["mixing_networks"]
     agent_models = ex_config["agent_models"]
-    scenarios = ex_config["scenarios"] if config_dict["env"] == "simple_spread" else ex_config["agents_enemies"]
 
     cuda_available = th.cuda.is_available()
     initialization = True
@@ -131,56 +130,48 @@ def auto(params):
         config_dict["use_cuda"] = True
         nvmlInit()
 
-    for key_s, val_s in scenarios.items():
-        # load environment config
-        env_config = _get_config(params, "", "envs", config_dict["env"] + parallel_env)
+    # load environment config
+    env_config = _get_config(params, "", "envs", config_dict["env"] + parallel_env)
 
-        if config_dict["env"] == "sc2":
-            map_name = "3m" if int(key_s) == 0 else "8m"
-            # map_name = "5m_vs_6m" if int(key_s) == 0 else "8m_vs_9m"
-            map_c = get_smac_map_config(map_name)
-            env_config = recursive_dict_update(env_config, map_c)
-        elif config_dict["env"] == "simple_spread":
-            u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
-            env_config = recursive_dict_update(env_config, u)
+    if config_dict["env"] == "sc2":
+        map_c = get_smac_map_config(config_dict["map_name"])
+        env_config = recursive_dict_update(env_config, map_c)
+    # elif config_dict["env"] == "simple_spread":
+    #     u = { "env_args": { "n_agents": val_s[0], "n_landmarks" : val_s[1] } }
+    #     env_config = recursive_dict_update(env_config, u)
 
-        for key_a in agent_models:
-            agent = { "agent": key_a }
-            config_dict = recursive_dict_update(config_dict, agent)
+    for key_a in agent_models:
+        agent = { "agent": key_a }
+        config_dict = recursive_dict_update(config_dict, agent)
 
-            for m_net in mixing_networks:
-                # get algorithm config
-                alg_config = _get_config(params, "--config", "algs", m_net + parallel_env)
+        for m_net in mixing_networks:
+            # get algorithm config
+            alg_config = _get_config(params, "--config", "algs", m_net + parallel_env)
 
-                config_dict = recursive_dict_update(config_dict, env_config)
-                config_dict = recursive_dict_update(config_dict, alg_config)
+            config_dict = recursive_dict_update(config_dict, env_config)
+            config_dict = recursive_dict_update(config_dict, alg_config)
 
-                # rnn model transfer learning has not implenmented
-                scenarios = ["baselines", "benchmarks", "transfers"]
-                config_dict["task_dir"] = scenarios[int(key_s)]
+            config_dict["task_dir"] = "scratch" if config_dict["checkpoint_path"] == "" else "finetune"
 
-                if config_dict["agent"] in ["rnn"] and int(key_s) >= 2: 
-                    continue
+            logger = get_logger()
+            ex.logger = logger
 
-                logger = get_logger()
-                ex.logger = logger
+            # Save to disk by default for sacred
+            logger.info("Saving to FileStorageObserver in results/sacred.")
+            file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["map_name"], config_dict["task_dir"])
 
-                # Save to disk by default for sacred
-                logger.info("Saving to FileStorageObserver in results/sacred.")
-                file_obs_path = os.path.join(results_path, config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
+            # now add all the config to sacred
+            if initialization:
+                ex.add_config(config_dict)
+                ex.observers.append(FileStorageObserver.create(file_obs_path))
+                ex.run()
 
-                # now add all the config to sacred
-                if initialization:
-                    ex.add_config(config_dict)
-                    ex.observers.append(FileStorageObserver.create(file_obs_path))
-                    ex.run()
-
-                    initialization = False
-                else:
-                    ex.observers[0] = FileStorageObserver.create(file_obs_path)
-                    ex.run(config_updates = config_dict)
-                
-                time.sleep(PAUSE_NEXT_TASK_DURATION)
+                initialization = False
+            else:
+                ex.observers[0] = FileStorageObserver.create(file_obs_path)
+                ex.run(config_updates = config_dict)
+            
+            time.sleep(PAUSE_NEXT_TASK_DURATION)
 
 def single(params):
     # environment checking
@@ -232,7 +223,7 @@ def single(params):
 
     # Save to disk by default for sacred
     logger.info("Saving to FileStorageObserver in results/sacred.")
-    file_obs_path = os.path.join(results_path,  config_dict["experiment"], "sacred", config_dict["env"], config_dict["task_dir"])
+    file_obs_path = os.path.join(results_path,  config_dict["experiment"], "sacred", config_dict["env"], config_dict["map_name"], config_dict["task_dir"])
     ex.observers.append(FileStorageObserver.create(file_obs_path))
 
     ex.run_commandline(params)

@@ -1,8 +1,6 @@
 from re import A
 import torch.nn as nn
 import torch
-from einops import repeat
-from modules.helpers.layers.cross_attention import CrossAttention
 from modules.helpers.layers.perceiverIO_encoder_layer import PerceiverIOEncoderLayer
 from modules.helpers.layers.perceiverIO_process_layer import PerceiverIOProcessLayer
 from modules.helpers.layers.perceiverIO_decoder_layer import PerceiverIODecoderLayer
@@ -15,18 +13,18 @@ class PerceiverIO(nn.Module):
         self.args = args
 
         self.latent_length = args.latent_length
-        self.latent_embedding_size = args.latent_embedding_size
+        self.emb = args.emb
 
         # learnable initial latent vectors
-        self.latent = nn.Parameter(torch.rand(args.latent_length, args.latent_embedding_size))
-        # self._init_parameters(0.02)
+        self.latent = nn.Parameter(torch.rand(args.latent_length, args.process_out))
+        # self.latent = nn.Embedding(args.latent_length, args.emb)
 
         # Embedding
         self.token_embedding = nn.Linear(args.token_dim, args.emb)
 
         # Encoder
-        self.encoder = PerceiverIOEncoderLayer(args, args.emb)
-        self.hidden_embedding = nn.Linear(args.latent_embedding_size, args.emb)
+        self.encoder = PerceiverIOEncoderLayer(args)
+        self.hidden_embedding = nn.Linear(args.encode_out, args.emb)
 
         # Process
         self.process = nn.ModuleList([PerceiverIOProcessLayer(args, args.emb) for _ in range(args.depth)] )
@@ -54,7 +52,7 @@ class PerceiverIO(nn.Module):
 
         query = self.token_embedding(query)
         
-        x = self.decoder(x, query).view(b, self.args.action_space_size + self.args.enemy_num, self.args.query_out_channel * 2)
+        x = self.decoder(x, query).view(b, self.args.action_space_size + self.args.enemy_num, self.args.emb)
 
         return x, hidden
 
