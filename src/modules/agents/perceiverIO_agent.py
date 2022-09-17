@@ -55,12 +55,12 @@ class PerceiverIOAgent(nn.Module):
         encoder_inputs = new[:, :task_ally_num, :]
         decoder_inputs = new[:, task_ally_num:, :]
 
-        query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
-        decoder_inputs = torch.cat([query, decoder_inputs], dim = 1)
-
         if self.args.use_cuda:
             encoder_inputs = encoder_inputs.cuda()
             decoder_inputs = decoder_inputs.cuda()
+
+        query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
+        decoder_inputs = torch.cat([query, decoder_inputs], dim = 1)
 
         outputs, hidden = self.perceiverIO(encoder_inputs, hidden_state, decoder_inputs)
 
