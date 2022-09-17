@@ -15,7 +15,10 @@ class PerceiverIOplusAgent(nn.Module):
         self.perceiverIO = PerceiverIO(args)
 
         # Output optimal action
-        self.action_embedding = nn.Linear(args.emb, args.action_space_size + args.min_enemy_num)
+        if args.checkpoint_path == "":
+            self.action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
+        else:
+            self.action_embedding = nn.Linear(args.emb, args.action_space_size + args.min_enemy_num)
 
     def init_hidden(self):
         # make hidden states on same device as model
