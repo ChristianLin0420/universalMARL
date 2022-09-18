@@ -32,6 +32,7 @@ class PerceiverIODecoderLayer(nn.Module):
     def forward(self, dec, enc):
         _x = enc
         x = self.attention(dec, enc)
+
         x = self.norm1(x + _x)
         x = self.drop1(x)
 

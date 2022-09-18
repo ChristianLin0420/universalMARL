@@ -2,16 +2,16 @@ import torch.nn as nn
 
 from .cross_attention import CrossAttention
 
-class PerceiverIOEncoderLayer(nn.Module):
+class DoublePerceiverIOEncoderLayer(nn.Module):
 
     def __init__(self, args, dropout=0.0):
-        super(PerceiverIOEncoderLayer, self).__init__()
+        super(DoublePerceiverIOEncoderLayer, self).__init__()
 
         self.args = args
 
-        self.attention = CrossAttention(    args.emb, 
+        self.attention = CrossAttention(    args.encode_out, 
                                             args.encode_out, 
-                                            args.emb, 
+                                            args.encode_out, 
                                             args.encode_out * args.mapping_scalar, 
                                             args.encode_out, 
                                             args.encode_out * args.mapping_scalar, 

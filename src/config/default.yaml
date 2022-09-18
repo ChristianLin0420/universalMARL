@@ -68,7 +68,7 @@ encode_out: 16
 # Process #
 process_out: 16 
 # Decode # 
-decode_out: 32 
+decode_out: 64 # perceiver_io++ is 32 
 
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).

@@ -4,7 +4,7 @@ from .cross_attention import CrossAttention
 
 class PerceiverIOProcessLayer(nn.Module):
 
-    def __init__(self, args, emb, ff_hidden_mult=2, dropout=0.0):
+    def __init__(self, args, dropout=0.0):
         super(PerceiverIOProcessLayer, self).__init__()
 
         self.args = args
