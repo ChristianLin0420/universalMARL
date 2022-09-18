@@ -62,18 +62,18 @@ random_mixing_inputs_zero: False
 mapping_scalar: 4
 
 # latent #
-latent_length: 4
+latent_length: 8
 # Encode #
-encode_out: 8 
+encode_out: 16
 # Process #
-process_out: 8 
+process_out: 16 
 # Decode # 
 decode_out: 32 
 
 # --- Transformer parameters. Should be set manually. ---
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).
 max_len: 128
-emb: 32 # embedding dimension of transformer
+emb: 64 # embedding dimension of transformer
 heads: 5 # head number of transformer
 depth: 2 # block number of transformer
 
