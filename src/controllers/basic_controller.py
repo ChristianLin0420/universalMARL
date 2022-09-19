@@ -63,9 +63,14 @@ class BasicMAC:
 
                 hidden_size = self.args.emb // 2 if self.args.agent == "trackformer" else self.args.emb
 
+                if self.args.agent == "double_perceiver":
+                    hidden_state = None
+                else:
+                    hidden_state = self.hidden_states.reshape(-1, 1, hidden_size)
+                
                 agent_outs, self.hidden_states = self.agent(agent_inputs,
-                                                           self.hidden_states.reshape(-1, 1, hidden_size),
-                                                           self.args.enemy_num, self.args.ally_num)
+                                                            hidden_state,
+                                                            self.args.enemy_num, self.args.ally_num)
 
             else:
                 agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states.reshape(-1, 1, self.args.emb), env = self.args.env)

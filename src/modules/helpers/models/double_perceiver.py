@@ -44,8 +44,8 @@ class DoublePerceiver(nn.Module):
     def forward(self, ally, enemy, h, query):
         ally_tokens = self.token_embedding(ally)
         enemy_tokens = self.token_embedding(enemy)
-        ally_tokens = torch.cat((ally_tokens, h), 1)
-        enemy_tokens = torch.cat((enemy_tokens, h), 1)
+        # ally_tokens = torch.cat((ally_tokens, h), 1)
+        # enemy_tokens = torch.cat((enemy_tokens, h), 1)
 
         b = ally_tokens.size(0)
         ally_latent = torch.repeat_interleave(torch.unsqueeze(self.ally_latent, dim = 0), b, dim = 0)
@@ -53,15 +53,15 @@ class DoublePerceiver(nn.Module):
 
         ally = self.ally_encoder(ally_tokens, ally_latent)
         enemy = self.enemy_encoder(enemy_tokens, enemy_latent)
-        hidden = torch.cat([ally, enemy], -1)
-        hidden = self.hidden_embedding(hidden.view(-1, self.args.latent_length * self.args.encode_out * 2)).view(b, 1, self.args.emb)
+        # hidden = torch.cat([ally, enemy], -1)
+        # hidden = self.hidden_embedding(hidden.view(-1, self.args.latent_length * self.args.encode_out * 2)).view(b, 1, self.args.emb)
 
         for layer in self.process:
             x = layer(enemy, ally)
         
         x = self.decoder(x, query).view(b, 1, self.args.emb)
 
-        return x, hidden
+        return x, None
 
 def _init_parameters(module, init_scale):
     for m in module.modules():
