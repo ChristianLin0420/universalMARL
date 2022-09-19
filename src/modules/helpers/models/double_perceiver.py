@@ -11,6 +11,7 @@ class DoublePerceiver(nn.Module):
         super().__init__()
 
         self.args = args
+        self.dropout = 0.5
 
         # learnable initial latent vectors
         self.ally_latent = nn.Parameter(torch.empty(args.latent_length, args.encode_out))
@@ -21,19 +22,19 @@ class DoublePerceiver(nn.Module):
         self.token_embedding = nn.Linear(args.token_dim, args.emb)
 
         # Ally Encoder
-        self.ally_encoder = PerceiverIOEncoderLayer(args, 0.2)
+        self.ally_encoder = PerceiverIOEncoderLayer(args, self.dropout)
 
         # Enemy Encoder
-        self.enemy_encoder = PerceiverIOEncoderLayer(args, 0.2)
+        self.enemy_encoder = PerceiverIOEncoderLayer(args, self.dropout)
 
         # Hidden Embedding
         self.hidden_embedding = nn.Linear(args.latent_length * args.encode_out * 2, args.emb)
 
         # Process
-        self.process = nn.ModuleList([DoublePerceiverIOEncoderLayer(args, 0.2) for _ in range(args.depth)] )
+        self.process = nn.ModuleList([DoublePerceiverIOEncoderLayer(args, self.dropout) for _ in range(args.depth)] )
 
         # Decoder 
-        self.decoder = PerceiverIODecoderLayer(args, args.emb, dropout = 0.2)
+        self.decoder = PerceiverIODecoderLayer(args, args.emb, dropout = self.dropout)
 
     def _init_parameters(self, init_scale: float):
         with torch.no_grad():
