@@ -4,9 +4,9 @@ import torch
 from modules.helpers.models.double_perceiver import DoublePerceiver
 
 
-class DoublePerceiverAgent(nn.Module):
+class MultiAgentPerceiverAgent(nn.Module):
     def __init__(self, input_shape, args):
-        super(DoublePerceiverAgent, self).__init__()
+        super(MultiAgentPerceiverAgent, self).__init__()
 
         self.args = args
         self.action_query = nn.Parameter(torch.rand(1, args.emb))

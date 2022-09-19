@@ -42,25 +42,8 @@ class PerceiverIOplusAgent(nn.Module):
         
         b, t, e = inputs.size()
 
-        inputs = torch.reshape(inputs, (b, t * e))
-        new = torch.zeros(b, t * e)
-
-        f_size = self.args.token_dim
-        own_feature = 1
-        move_feature = 4
-
-        new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
-        new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
-        new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
-        new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
-        new = torch.reshape(new, (b, t, e))
-
-        if self.args.use_cuda:
-            new = new.cuda()
-
         query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
-
-        outputs, hidden = self.perceiverIO(new, hidden_state, query)
+        outputs, hidden = self.perceiverIO(inputs, hidden_state, query)
 
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)

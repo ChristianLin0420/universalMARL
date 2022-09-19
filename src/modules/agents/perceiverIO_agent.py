@@ -39,28 +39,10 @@ class PerceiverIOAgent(nn.Module):
         
         b, t, e = inputs.size()
 
-        inputs = torch.reshape(inputs, (b, t * e))
-        new = torch.zeros(b, t * e)
-
-        f_size = self.args.token_dim
-        own_feature = 1
-        move_feature = 4
-
-        new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
-        new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
-        new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * f_size):(t * e - own_feature)]  # ally features
-        new[:, task_ally_num * f_size:] = inputs[:, move_feature:(move_feature + task_enemy_num * f_size)]                                  # enemy features
-        new = torch.reshape(new, (b, t, e))
-
-        encoder_inputs = new[:, :task_ally_num, :]
-        decoder_inputs = new[:, task_ally_num:, :]
-
-        if self.args.use_cuda:
-            encoder_inputs = encoder_inputs.cuda()
-            decoder_inputs = decoder_inputs.cuda()
-
+        encoder_inputs = inputs[:, :task_ally_num, :].to(self.args.device)
+        decoder_inputs = inputs[:, task_ally_num:, :]
         query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
-        decoder_inputs = torch.cat([query, decoder_inputs], dim = 1)
+        decoder_inputs = torch.cat([query, decoder_inputs], dim = 1).to(self.args.device)
 
         outputs, hidden = self.perceiverIO(encoder_inputs, hidden_state, decoder_inputs)
 
