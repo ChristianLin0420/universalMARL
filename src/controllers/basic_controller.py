@@ -96,7 +96,7 @@ class BasicMAC:
     def save_models(self, path):
         th.save(self.agent.state_dict(), "{}/agent.th".format(path))
 
-        if self.args.agent in ["transfermer", "perceiver_io"]:
+        if self.args.agent in ["transfermer", "perceiver_io", "perceiver++"]:
             self.agent.save_query(path)
 
     def load_models(self, path):
