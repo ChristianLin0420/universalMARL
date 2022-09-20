@@ -178,17 +178,17 @@ def single(params):
     USING_MPS = False
 
     # environment checking
-    if USING_MPS:
-        import torch
-        print(f"PyTorch version: {torch.__version__}")
+    # if USING_MPS:
+    #     import torch
+    #     print(f"PyTorch version: {torch.__version__}")
 
-        # Check PyTorch has access to MPS (Metal Performance Shader, Apple's GPU architecture)
-        print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
-        print(f"Is MPS available? {torch.backends.mps.is_available()}")
+    #     # Check PyTorch has access to MPS (Metal Performance Shader, Apple's GPU architecture)
+    #     print(f"Is MPS (Metal Performance Shader) built? {torch.backends.mps.is_built()}")
+    #     print(f"Is MPS available? {torch.backends.mps.is_available()}")
 
-        # Set the device      
-        device = "mps" if torch.backends.mps.is_available() else "cpu"
-        print(f"Using device: {device}")
+    #     # Set the device      
+    #     device = "mps" if torch.backends.mps.is_available() else "cpu"
+    #     print(f"Using device: {device}")
 
     default_config_name = _get_config_name(params, "--env-config")
     default_config_name = "default_{}.yaml".format(default_config_name)

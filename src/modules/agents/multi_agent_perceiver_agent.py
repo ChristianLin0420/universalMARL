@@ -41,15 +41,11 @@ class MultiAgentPerceiverAgent(nn.Module):
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
         
-        b, t, e = inputs.size()
+        b = inputs.size(0)
+        obs_size = self.args.token_dim * (self.args.ally_num + self.args.enemy_num)
+        inputs = inputs.view(-1, self.args.ally_num, obs_size)
 
-        encoder_inputs = inputs[:, :task_ally_num, :].to(self.args.device)
-        decoder_inputs = inputs[:, task_ally_num:, :].to(self.args.device)
-        decoder_inputs = torch.cat((encoder_inputs[:, :1, :], decoder_inputs), dim = 1)
-
-        query = torch.repeat_interleave(torch.unsqueeze(self.action_query, dim = 0), b, dim = 0)
-
-        outputs, hidden = self.perceiverIO(encoder_inputs, decoder_inputs, hidden_state, query)
+        outputs, hidden = ...
 
         # first output for 6 action (no_op stop up down left right)
         q = self.action_embedding(outputs.view(-1, self.args.emb)).view(b, -1, 1)
