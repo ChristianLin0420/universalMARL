@@ -24,7 +24,7 @@ class PerceiverIO(nn.Module):
         self.hidden_embedding = nn.Linear(args.encode_out, args.emb)
 
         # Process
-        self.process = nn.ModuleList([PerceiverIOProcessLayer(args, args.emb) for _ in range(args.depth)] )
+        self.process = nn.ModuleList([PerceiverIOProcessLayer(args, 0.5) for _ in range(args.depth)] )
 
         # Decoder 
         self.decoder = PerceiverIODecoderLayer(args, args.emb)
