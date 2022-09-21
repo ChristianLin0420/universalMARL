@@ -18,6 +18,9 @@ REGISTRY['dummy_transformer'] = DummyTransformer
 from .transfermer_agent import Transfermer
 REGISTRY['transfermer'] = Transfermer
 
+from .transfermer_plus_agent import TransfermerPlus
+REGISTRY['transfermer++'] = TransfermerPlus
+
 from .transformer_agg_agent import TransformerAggregationAgent
 REGISTRY['transformer_aggregation'] = TransformerAggregationAgent
 
@@ -46,6 +49,7 @@ TRANSFORMERbasedAgent = [   'updet',
                             'vanilla_transformer', 
                             'dummy_transformer', 
                             'transfermer', 
+                            'transfermer++',
                             'perceiver_io', 
                             'perceiver++',
                             'double_perceiver',

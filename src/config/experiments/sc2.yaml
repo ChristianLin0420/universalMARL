@@ -19,8 +19,9 @@ agent_models: [
   # "dummy_transformer",
   # "dummy_updet",
   # "transfermer", 
+  "transfermer++",
   # "perceiver_io", 
-  "perceiver++",
+  # "perceiver++",
   # "double_perceiver",
   # "trackformer", 
   # "gpt"
