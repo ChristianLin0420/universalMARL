@@ -21,7 +21,7 @@ smac_maps_features = {
 smac_maps_entities = {
     "3m":           [3, 3],      # # of agents/enemies
     "8m":           [8, 8],
-    "2s3z":         [2, 3],
+    "2s3z":         [5, 5],
     "3s_vs_3z":     [3, 3], 
     "3s_vs_4z":     [3, 4], 
     "3s5z_vs_3s6z": [8, 9],
@@ -80,9 +80,9 @@ def get_smac_map_config(env_name):
     return {
         "ally_num": smac_maps_entities[env_name][0], 
         "enemy_num": smac_maps_entities[env_name][1],
-        "enemy_feature": smac_maps_features[env_name][1],
-        "own_feature": smac_maps_features[env_name][3],
-        "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+        "enemy_feature": 5, #smac_maps_features[env_name][1],
+        "own_feature": 1, #smac_maps_features[env_name][3],
+        "token_dim": 5, #smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
         "min_enemy_num": smac_maps_features[env_name][4],
         "env_args": {
             "map_name": env_name
