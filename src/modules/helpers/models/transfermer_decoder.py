@@ -11,7 +11,7 @@ class TransfermerDecoder(nn.Module):
 
         self.posit_emb = PositionalEncoding(args.emb, args.max_len, args.device)
 
-        self.layers = nn.ModuleList([TransfermerDecoderLayer(args=args, emb=args.emb) for _ in range(1)])
+        self.layers = nn.ModuleList([TransfermerDecoderLayer(args=args, emb=args.emb) for _ in range(args.depth)])
 
     def forward(self, d, enc_src, position_emb = True):
 
