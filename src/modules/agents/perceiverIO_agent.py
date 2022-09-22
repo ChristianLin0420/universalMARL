@@ -19,20 +19,13 @@ class PerceiverIOAgent(nn.Module):
 
     def init_hidden(self):
         # make hidden states on same device as model
-        if self.args.use_cuda:
-            return torch.zeros(1, self.args.emb).cuda()
-        else:
-            return torch.zeros(1, self.args.emb)
+        return torch.zeros(1, self.args.emb).to(self.args.device)
     
     def save_query(self, path):
         torch.save(self.action_query, "{}/action_query.pt".format(path))
 
     def load_query(self, path):
-        self.action_query = torch.load("{}/action_query.pt".format(path))
-
-        if self.args.use_cuda:
-            self.action_query = self.action_query.cuda()
-
+        self.action_query = torch.load("{}/action_query.pt".format(path)).to(self.args.device)
         self.action_query.requires_grad =  False
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):

@@ -16,10 +16,7 @@ class DummyUPDeT(nn.Module):
 
     def init_hidden(self):
         # make hidden states on same device as model
-        if self.args.use_cuda:
-            return torch.zeros(1, self.args.emb).cuda()
-        else:
-            return torch.zeros(1, self.args.emb)
+        return torch.zeros(1, self.args.emb).to(self.args.device)
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
         
@@ -35,16 +32,10 @@ class DummyUPDeT(nn.Module):
             new = torch.zeros(b, self.max_agents_len * e)
             f_size = self.args.token_dim
             enemy_feature = self.args.enemy_feature
-            own_feature = self.args.own_feature
-            move_feature = self.args.token_dim - self.args.own_feature
-            new[:, :move_feature] = inputs[:, :move_feature]                                # agent movement features
-            new[:, move_feature:(move_feature + own_feature)] = inputs[:, -own_feature:]    # agent own feature
-            new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (move_feature + task_enemy_num * enemy_feature):(t * e - own_feature)]    # ally features
-            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * enemy_feature)] = inputs[:, move_feature:(move_feature + task_enemy_num * enemy_feature)]       # enemy features
-            inputs = torch.reshape(new, (b, self.max_agents_len, e))
-
-            if self.args.use_cuda:
-                inputs = inputs.cuda()
+            new[:, :f_size] = inputs[:, :f_size]                                # agent movement features
+            new[:, f_size:(f_size + (task_ally_num - 1) * f_size)] = inputs[:, (f_size + task_enemy_num * enemy_feature):(t * e)]    # ally features
+            new[:, int(self.max_agents_len * f_size / 2):int(self.max_agents_len * f_size / 2 + task_enemy_num * enemy_feature)] = inputs[:, f_size:(f_size + task_enemy_num * enemy_feature)]       # enemy features
+            inputs = torch.reshape(new, (b, self.max_agents_len, e)).to(self.args.device)
         elif env == "simple_spread":
             tmp_inputs[:, :t, :] = inputs
             inputs = tmp_inputs

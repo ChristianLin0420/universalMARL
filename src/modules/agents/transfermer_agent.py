@@ -38,10 +38,7 @@ class Transfermer(nn.Module):
 
     def init_hidden(self):
         # make hidden states on same device as model
-        if self.args.use_cuda:
-            return torch.zeros(1, self.args.emb).cuda()
-        else:
-            return torch.zeros(1, self.args.emb)
+        return torch.zeros(1, self.args.emb).to(self.args.device)
     
     def append_extra_infos(self, inputs, encoder_input = True):
         b, _, _ = inputs.size()
@@ -92,22 +89,13 @@ class Transfermer(nn.Module):
         torch.save(self.decoder_query, "{}/decoder_query.pt".format(path))
 
     def load_query(self, path):
-        self.encoder_query = torch.load("{}/encoder_query.pt".format(path))
-        self.decoder_query = torch.load("{}/decoder_query.pt".format(path))
-
-        if self.args.use_cuda:
-            self.encoder_query = self.encoder_query.cuda()
-            self.decoder_query = self.decoder_query.cuda()
-
+        self.encoder_query = torch.load("{}/encoder_query.pt".format(path)).to(self.args.device)
+        self.decoder_query = torch.load("{}/decoder_query.pt".format(path)).to(self.args.device)
         self.encoder_query.requires_grad =  False
         self.decoder_query.requires_grad =  False
 
     def fixed_models_weight(self):
-        self.map_action_embedding = nn.Linear(self.args.action_space_size + self.args.max_enemy_num, self.args.action_space_size + self.args.enemy_num)
-
-        if self.args.use_cuda:
-            self.map_action_embedding.to(self.args.device)
-
+        self.map_action_embedding = nn.Linear(self.args.action_space_size + self.args.max_enemy_num, self.args.action_space_size + self.args.enemy_num).to(self.args.device)
         self.transformer.requires_grad = False
         self.action_embedding.requires_grad = False
         self.map_action_embedding.requires_grad = True

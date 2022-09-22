@@ -16,10 +16,7 @@ class TransfermerPlus(nn.Module):
 
     def init_hidden(self):
         # make hidden states on same device as model
-        if self.args.use_cuda:
-            return torch.zeros(1, self.args.emb).cuda()
-        else:
-            return torch.zeros(1, self.args.emb)
+        return torch.zeros(1, self.args.emb).to(self.args.device)
 
     def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
         
