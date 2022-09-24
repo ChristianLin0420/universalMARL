@@ -2,20 +2,20 @@
 
 
 smac_maps_features = {
-    "3m":           [4, 5, 5, 1, 3],      # feature size of action_move/enemy/ally/own/transfer 
-    "8m":           [4, 5, 5, 1, 3],
-    "2s3z":         [4, 8, 8, 4, 5],
-    "3s_vs_3z":     [4, 6, 6, 2, 3], 
-    "3s_vs_4z":     [4, 6, 6, 2, 4], 
-    "3s5z_vs_3s6z": [4, 8, 8, 4, 9],
-    "6h_vs_8z":     [4, 6, 5, 1, 8], 
-    "25m":          [4, 5, 5, 1, 25],
-    "bane_vs_bane": [4, 7, 7, 3, 9], 
-    "corridor":     [4, 5, 6, 2, 9],
-    "2c_vs_64zg":   [4, 5, 6, 2, 64], 
-    "5m_vs_6m":     [4, 5, 5, 1, 6],
-    "8m_vs_9m":     [4, 5, 5, 1, 6], 
-    "10m_vs_11m":   [4, 5, 5, 1, 6]
+    "3m":           [4, 5, 5, 1, 3, 8, 8],      # feature size of action_move/enemy/ally/own/minE/maxE/maxA 
+    "8m":           [4, 5, 5, 1, 3, 8, 8],
+    "2s3z":         [4, 8, 8, 4, 5, 8, 8],
+    "3s_vs_3z":     [4, 6, 6, 2, 3, 5, 3], # -> 3s_vs_5z
+    "3s_vs_4z":     [4, 6, 6, 2, 4, 5, 3], 
+    "3s5z_vs_3s6z": [4, 8, 8, 4, 9, 9, 8],
+    "6h_vs_8z":     [4, 6, 5, 1, 8, 8, 6], 
+    "25m":          [4, 5, 5, 1, 25, 25, 25],
+    "bane_vs_bane": [4, 7, 7, 3, 9, 24, 24], 
+    "corridor":     [4, 5, 6, 2, 9, 24, 6],
+    "2c_vs_64zg":   [4, 5, 6, 2, 64, 64, 2], 
+    "5m_vs_6m":     [4, 5, 5, 1, 6, 9, 8],
+    "8m_vs_9m":     [4, 5, 5, 1, 6, 9, 8], 
+    "10m_vs_11m":   [4, 5, 5, 1, 6, 11, 10]
 }
 
 smac_maps_entities = {
@@ -84,6 +84,8 @@ def get_smac_map_config(env_name):
         "own_feature": 1, #smac_maps_features[env_name][3],
         "token_dim": 5, #smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
         "min_enemy_num": smac_maps_features[env_name][4],
+        "max_enemy_num": smac_maps_features[env_name][5],
+        "max_ally_num": smac_maps_features[env_name][6],
         "env_args": {
             "map_name": env_name
         }

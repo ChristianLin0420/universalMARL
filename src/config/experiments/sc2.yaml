@@ -6,20 +6,21 @@ parallel: False
 
 mixing_networks: [
   # "vdn",
-  "qmix",
+  # "qmix",
+  "rmix",
   # "qtran",
   # "transmix",
   # "adaptivemix"
 ]
 
 agent_models: [
-  # "rnn", 
+  "rnn", 
   # "updet",
   # "vanilla_transformer",
   # "dummy_transformer",
   # "dummy_updet",
   # "transfermer", 
-  "transfermer++",
+  # "transfermer++",
   # "perceiver_io", 
   # "perceiver++",
   # "double_perceiver",
