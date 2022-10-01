@@ -45,7 +45,7 @@ class UPDeT(nn.Module):
         elif env in ["simple_spread"]:
             return q_basic_actions, h
 
-    def load_query(self):
+    def load_query(self, path):
         pass
 
     def fixed_models_weight(self):
