@@ -45,6 +45,13 @@ class UPDeT(nn.Module):
         elif env in ["simple_spread"]:
             return q_basic_actions, h
 
+    def load_query(self):
+        pass
+
+    def fixed_models_weight(self):
+        self.transformer.requires_grad = False
+        self.q_basic.requires_grad = True
+
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description='Unit Testing')
