@@ -61,6 +61,10 @@ class RMixer(nn.Module):
 
     def forward(self, agent_qs, states):
         bs = agent_qs.size(0)
+
+        if self.args.random_mixing_inputs:
+            permutation = th.randperm(self.args.ally_num).to(self.args.device)
+            agent_qs = agent_qs[:, :, permutation]
         
         states = self.state_padding(states)
         agent_qs = self.agent_qs_padding(agent_qs)

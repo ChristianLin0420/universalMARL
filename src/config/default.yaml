@@ -55,9 +55,9 @@ min_ally_num: 0
 max_enemy_num: 0
 min_enemy_num: 0
 action_context_length: 30
-random_inputs: False
-random_encoder_inputs_zero: False
-random_mixing_inputs_zero: False
+random_inputs: True
+random_encoder_inputs_zero: True
+random_mixing_inputs: True
 
 # --- PerceiverIO parameters ---
 mapping_scalar: 4

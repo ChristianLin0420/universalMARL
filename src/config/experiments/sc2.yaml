@@ -14,13 +14,13 @@ mixing_networks: [
 ]
 
 agent_models: [
-  "rnn", 
+  # "rnn", 
   # "updet",
   # "vanilla_transformer",
   # "dummy_transformer",
   # "dummy_updet",
   # "transfermer", 
-  # "transfermer++",
+  "transfermer++",
   # "perceiver_io", 
   # "perceiver++",
   # "double_perceiver",

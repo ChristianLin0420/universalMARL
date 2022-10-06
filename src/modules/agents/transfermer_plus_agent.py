@@ -7,6 +7,7 @@ class TransfermerPlus(nn.Module):
     def __init__(self, input_shape, args):
         super(TransfermerPlus, self).__init__()
         self.args = args
+        self.encoder_random_input = args.random_encoder_inputs_zero
         
         self.basic_action_query = torch.unsqueeze(torch.rand(args.action_space_size, args.token_dim), 0).to(self.args.device)
         self.transformer = TransferableTransformerPlus(args, args.token_dim, args.emb)
@@ -25,6 +26,18 @@ class TransfermerPlus(nn.Module):
         encoder_inputs = inputs[:, :task_ally_num, :].to(self.args.device)
         decoder_inputs = inputs[:, task_ally_num:, :].to(self.args.device)
         decoder_inputs = torch.cat((torch.repeat_interleave(self.basic_action_query, b, 0), decoder_inputs), 1)
+
+        # dummy input with random order
+        if self.encoder_random_input and self.args.max_ally_num - task_ally_num > 0 :
+            dummy_size = self.args.max_ally_num - task_ally_num
+            dummy_inputs = torch.rand(b, dummy_size, inputs.size(-1)).to(self.args.device)
+            dummy_inputs = torch.cat((encoder_inputs[:, 1:, :], dummy_inputs), 1)
+
+            if self.args.random_inputs:
+                permutation = torch.randperm(self.args.max_ally_num - 1).to(self.args.device)
+                dummy_inputs = dummy_inputs[:, permutation, :]
+            
+            encoder_inputs = torch.cat((encoder_inputs[:, :1, :], dummy_inputs), 1)
 
         outputs = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, None)
 
