@@ -45,13 +45,13 @@ class TransfermerDecoderLayer(nn.Module):
         _x = dec
         x = self.cross_attention(enc, x)
 
-        x = self.norm1(x + _x)
-        x = self.drop1(x)
+        x = self.norm2(x + _x)
+        x = self.drop2(x)
 
         _x = x
         x = self.ffn(x)
         
-        x = self.norm2(x + _x)
-        x = self.drop2(x)
+        x = self.norm3(x + _x)
+        x = self.drop3(x)
 
         return x

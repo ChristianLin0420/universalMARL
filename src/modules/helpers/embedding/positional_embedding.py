@@ -32,7 +32,9 @@ class PositionalEncoding(nn.Module):
         self.encoding[:, 1::2] = torch.cos(pos / (10000 ** (_2i / d_model)))
         # compute positional encoding to consider positional information of words
 
-    def forward(self, x):
-        batch_size, seq_len, emb = x.size()
+    def forward(self, x, random_order = None):
 
-        return self.encoding[:seq_len, :]
+        if random_order is None:
+            return self.encoding[:x.size(1), :]
+        else:
+            pass

@@ -42,6 +42,9 @@ REGISTRY['trackformer'] = TrackformerAgent
 from .gpt_agent import GPTAgent
 REGISTRY['gpt'] = GPTAgent
 
+from .fuseformer_agent import FouseformerAgent
+REGISTRY['fuseformer'] = FouseformerAgent
+
 TRANSFORMERbasedAgent = [   'updet', 
                             'dummy_updet', 
                             'transformer_aggregation', 
@@ -54,4 +57,5 @@ TRANSFORMERbasedAgent = [   'updet',
                             'perceiver++',
                             'double_perceiver',
                             'trackformer', 
-                            'gpt'   ]
+                            'gpt', 
+                            'fuseformer'   ]
