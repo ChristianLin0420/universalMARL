@@ -58,6 +58,7 @@ action_context_length: 30
 random_inputs: True
 random_encoder_inputs_zero: True
 random_mixing_inputs: True
+dummy_entity: True
 
 # --- PerceiverIO parameters ---
 mapping_scalar: 4

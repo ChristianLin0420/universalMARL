@@ -41,8 +41,7 @@ class FouseformerAgent(nn.Module):
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
         outputs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, self.basic_action_query, None)
-
-        q = self.action_embedding(outputs.contiguous().view(-1, self.args.emb)).view(b, -1, 1)
+        q = self.action_embedding(outputs[:, :self.args.action_space_size+task_enemy_num, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
         return q, hidden
 
