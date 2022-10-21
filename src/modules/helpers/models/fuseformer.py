@@ -18,7 +18,7 @@ class Fouseformer(nn.Module):
         self.enemy_action_token_embedding = nn.Linear(input_dim, args.emb)
 
         self.position_embedding = nn.Linear(2, args.emb)
-        # self.position_embedding = TwoDPositionalEncoding(args.token_dim, args.max_len, args.device)
+        # self.position_embedding = TwoDPositionalEncoding(args, args.emb, args.max_len, args.device)
 
         self.encoder = Encoder(args, False, 0.0)
         self.decoder = TransfermerDecoder(args)
@@ -33,6 +33,7 @@ class Fouseformer(nn.Module):
 
         pos_input = torch.cat((a, e), 1)
         pos_emb = self.position_embedding(pos_input[:, :, 2:4])
+
         tokens = torch.cat((agent_token, entity_token), 1)
         tokens = tokens + pos_emb
         encoder_tokens = torch.cat((tokens, h), 1)

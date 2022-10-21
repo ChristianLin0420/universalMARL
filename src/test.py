@@ -1,12 +1,10 @@
-import torch
 
-x = torch.rand(3, 3, 3)
-y = x[:, 1:, :]
-p = torch.randperm(2)
-print(x)
-print(p)
-print(y)
-y = y[:, p, :]
-print(y)
-x = torch.cat((x[:, :1, :], y), 1)
-print(x)
+import torch
+from modules.helpers.embedding.twod_positional_embedding import TwoDPositionalEncoding
+
+encoding = TwoDPositionalEncoding(32, 512, "cpu")
+
+tmp = torch.rand(1, 32, 32)
+pos = encoding(tmp)
+
+print(pos)

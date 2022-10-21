@@ -7,7 +7,7 @@ class TwoDPositionalEncoding(nn.Module):
     compute sinusoid encoding.
     """
 
-    def __init__(self, d_model, max_len, device):
+    def __init__(self, args, d_model, max_len, device):
         """
         constructor of sinusoid encoding class
 
@@ -18,6 +18,8 @@ class TwoDPositionalEncoding(nn.Module):
         super(TwoDPositionalEncoding, self).__init__()
 
         self.delta = max_len // 2
+        self.device = device
+        self.args = args
 
         # same size with input matrix (for adding with input matrix)
         self.x_encoding = torch.zeros(max_len, d_model, device=device)
@@ -39,12 +41,12 @@ class TwoDPositionalEncoding(nn.Module):
     def forward(self, tokens):
 
         visible_range = 9
-        pos_emb = torch.zeros(tokens.size(0), tokens.size(0), self.args.token_dim)
+        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb)
 
         for b in range(tokens.size(0)):
             for idx in range(tokens.size(1)):
-                x = int(tokens[b, idx, 2] * visible_range)
-                y = int(tokens[b, idx, 3] * visible_range)
+                x = int(tokens[b, idx, 0] * visible_range)
+                y = int(tokens[b, idx, 1] * visible_range)
                 pos_emb[b, idx:idx+1, :] = torch.add(self.x_encoding[self.delta + x:self.delta + x + 1, :], self.y_encoding[self.delta + y:self.delta + y + 1, :])
 
-        return pos_emb.to(self.args.device)
+        return pos_emb.to(self.device)
