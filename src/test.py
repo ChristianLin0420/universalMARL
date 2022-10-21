@@ -1,10 +1,15 @@
 
 import torch
+import matplotlib.pyplot as plt
+
 from modules.helpers.embedding.twod_positional_embedding import TwoDPositionalEncoding
 
-encoding = TwoDPositionalEncoding(32, 512, "cpu")
+size = 32
 
-tmp = torch.rand(1, 32, 32)
-pos = encoding(tmp)
+encoding = TwoDPositionalEncoding(None, size, 512, "cpu")
 
-print(pos)
+tmp = torch.rand(1, 18, size)
+pos = encoding(tmp).squeeze(0)
+
+plt.matshow(pos)
+plt.show()
