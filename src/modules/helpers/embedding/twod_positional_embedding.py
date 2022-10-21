@@ -42,7 +42,7 @@ class TwoDPositionalEncoding(nn.Module):
     def forward(self, tokens):
 
         visible_range = 9
-        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), 32)
+        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb)
 
         for b in range(tokens.size(0)):
             for idx in range(tokens.size(1)):

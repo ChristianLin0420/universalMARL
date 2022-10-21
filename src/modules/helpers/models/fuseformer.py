@@ -17,8 +17,10 @@ class Fouseformer(nn.Module):
         self.entity_token_embedding = nn.Linear(input_dim, args.emb)
         self.enemy_action_token_embedding = nn.Linear(input_dim, args.emb)
 
-        self.position_embedding = nn.Linear(2, args.emb)
-        # self.position_embedding = TwoDPositionalEncoding(args, args.emb, args.max_len, args.device)
+        if not args.agent_positional_embedding:
+            self.position_embedding = nn.Linear(2, args.emb)
+        else:
+            self.position_embedding = TwoDPositionalEncoding(args, args.emb, args.max_len, args.device)
 
         self.encoder = Encoder(args, False, 0.0)
         self.decoder = TransfermerDecoder(args)
