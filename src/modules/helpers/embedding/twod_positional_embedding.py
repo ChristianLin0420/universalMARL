@@ -39,15 +39,30 @@ class TwoDPositionalEncoding(nn.Module):
         self.y_encoding[:, 0::2] = torch.sin(pos / (10000 ** (_2i / d_model)))
         self.y_encoding[:, 1::2] = torch.cos(pos / (10000 ** (_2i / d_model)))
 
+        # two dimensional positional matrix
+        self.encoding = torch.zeros(max_len, max_len, d_model * 2, device=device)
+
+        for x in range(max_len):
+            for y in range(max_len):
+                self.encoding[x, y, :] = torch.cat((self.x_encoding[x, :], self.y_encoding[y, :]), -1)
+
     def forward(self, tokens):
 
         visible_range = 9
-        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb)
+        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb).to(self.device)
 
-        for b in range(tokens.size(0)):
-            for idx in range(tokens.size(1)):
-                x = int(tokens[b, idx, 0] * visible_range)
-                y = int(tokens[b, idx, 1] * visible_range)
-                pos_emb[b, idx:idx+1, :] = torch.cat((self.x_encoding[self.delta + x:self.delta + x + 1, :], self.y_encoding[self.delta + y:self.delta + y + 1, :]), -1)
+        tokens = torch.mul(tokens, visible_range)
+        tokens = torch.round(tokens).type(torch.LongTensor)
 
-        return pos_emb.to(self.device)
+        # for b in range(tokens.size(0)):
+        #     for idx in range(tokens.size(1)):
+        #         x = int(tokens[b, idx, 0])
+        #         y = int(tokens[b, idx, 1])
+        #         pos_emb[b, idx:idx+1, :] = self.encoding[self.delta + x:self.delta + x + 1, 
+        #                                                  self.delta + y:self.delta + y + 1, :]
+
+        x = tokens[:, :, 0]
+        y = tokens[:, :, 1]
+        pos_emb[:, :, :] = self.encoding[x, y, :]
+
+        return pos_emb
