@@ -7,7 +7,7 @@ class DummyGenerator():
 
         self.device = device
 
-    def generate(self, batch, length, feature):
+    def generateRandomEntity(self, batch, length, feature):
         dummy = torch.zeros(batch, length, feature, device=self.device)
 
         # visible
@@ -22,3 +22,13 @@ class DummyGenerator():
         dummy[:, :, 1:] = features
 
         return dummy
+
+    def generateAverageEntity(self, entity, length):
+        
+        mean_entity = torch.mean(entity, 1, True)
+        repeat = length - entity.size(1)
+        dummy = torch.repeat_interleave(mean_entity, repeat, 1)
+
+        return dummy
+
+

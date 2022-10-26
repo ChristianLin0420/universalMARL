@@ -1,3 +1,4 @@
+from logging import error
 import torch.nn as nn
 import torch
 from modules.helpers.models.fuseformer import Fouseformer
@@ -35,8 +36,16 @@ class FouseformerAgent(nn.Module):
         if self.args.dummy_entity:
             encoder_dummy_length = self.args.max_ally_num - task_ally_num
             decoder_dummy_length = self.args.max_enemy_num - task_enemy_num
-            encoder_dummy = self.dummy_generator.generate(b, encoder_dummy_length, self.args.token_dim)
-            decoder_dummy = self.dummy_generator.generate(b, decoder_dummy_length, self.args.token_dim)
+
+            if self.args.dummy_type == 1:
+                encoder_dummy = self.dummy_generator.generateRandomEntity(b, encoder_dummy_length, self.args.token_dim)
+                decoder_dummy = self.dummy_generator.generateRandomEntity(b, decoder_dummy_length, self.args.token_dim)
+            elif self.args.dummy_type == 2:
+                encoder_dummy = self.dummy_generator.generateAverageEntity(encoder_inputs, encoder_dummy_length)
+                decoder_dummy = self.dummy_generator.generateAverageEntity(decoder_inputs, decoder_dummy_length)
+            else:
+                error("Given dummy type is not available.")
+
             encoder_inputs = torch.cat((encoder_inputs, encoder_dummy), 1)
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 

@@ -1,15 +1,12 @@
 
+from re import T
 import torch
-import matplotlib.pyplot as plt
 
-from modules.helpers.embedding.twod_positional_embedding import TwoDPositionalEncoding
 
-size = 32
+random = torch.rand(3, 2, 2)
 
-encoding = TwoDPositionalEncoding(None, size, 512, "cpu")
+print(random)
 
-tmp = torch.rand(1, 18, size)
-pos = encoding(tmp).squeeze(0)
-
-plt.matshow(pos)
-plt.show()
+avg = torch.mean(random, 1, True)
+print(avg.size())
+print(avg)

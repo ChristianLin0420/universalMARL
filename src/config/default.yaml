@@ -59,6 +59,8 @@ random_inputs: True
 random_encoder_inputs_zero: True
 random_mixing_inputs: True
 
+# --- Fuseformer parameters ---
+dummy_type: 1
 dummy_entity: True
 agent_positional_embedding: True
 
