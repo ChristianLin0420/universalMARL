@@ -11,7 +11,7 @@ class DummyGenerator():
         dummy = torch.zeros(batch, length, feature, device=self.device)
 
         # visible
-        visible = torch.randint(0, 1, (batch, length, 1))
+        visible = torch.zeros(batch, length, 1)
 
         # other features
         damage = torch.randint(0, 1, (batch, length, 4))
@@ -24,10 +24,15 @@ class DummyGenerator():
         return dummy
 
     def generateAverageEntity(self, entity, length):
+
+        # visible
+        visible = torch.zeros(entity.size(0), length, 1)
         
         mean_entity = torch.mean(entity, 1, True)
         repeat = length - entity.size(1)
         dummy = torch.repeat_interleave(mean_entity, repeat, 1)
+
+        dummy[:, :, :1] = visible
 
         return dummy
 
