@@ -33,7 +33,7 @@ env_args:
 
 test_greedy: True
 test_nepisode: 32
-t_max: 1050000
+t_max: 5050000
 
 action_space_size: 6
 token_dim: 5 # Marines. For other unit type (e.g. Zeolot) this number can be different (6).

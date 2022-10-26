@@ -96,13 +96,13 @@ class BasicMAC:
     def save_models(self, path):
         th.save(self.agent.state_dict(), "{}/agent.th".format(path))
 
-        if self.args.agent in ["transfermer", "transfermer++", "perceiver_io", "perceiver++", "double_perceiver"]:
+        if self.args.agent in ["transfermer", "transfermer++", "perceiver_io", "perceiver++", "double_perceiver", "fuseformer"]:
             self.agent.save_query(path)
 
     def load_models(self, path):
         self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
-        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet"]:
+        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer"]:
             self.agent.load_query(path)
             self.agent.fixed_models_weight()
 

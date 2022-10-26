@@ -29,8 +29,7 @@ class DummyGenerator():
         visible = torch.zeros(entity.size(0), length, 1)
         
         mean_entity = torch.mean(entity, 1, True)
-        repeat = length - entity.size(1)
-        dummy = torch.repeat_interleave(mean_entity, repeat, 1)
+        dummy = torch.repeat_interleave(mean_entity, length, 1)
 
         dummy[:, :, :1] = visible
 
