@@ -17,14 +17,11 @@ class FouseformerPlusAgent(nn.Module):
         # Output optimal action
         self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
 
-        self.decoder_outputs_test = torch.zeros(args.ally_num, args.max_memory_decoder, args.emb).to(args.device)
-        self.decoder_outputs_train = torch.zeros(args.ally_num * args.batch_size, args.max_memory_decoder, args.emb).to(args.device)
-
     def init_hidden(self):
         # make hidden states on same device as model
         return torch.zeros(1, self.args.emb).to(self.args.device)
 
-    def forward(self, inputs, hidden_state, task_enemy_num = None, task_ally_num = None, env = "sc2"):
+    def forward(self, inputs, hidden_state, decoder_outs, task_enemy_num = None, task_ally_num = None, env = "sc2"):
         
         b = inputs.size(0)
 
@@ -47,27 +44,10 @@ class FouseformerPlusAgent(nn.Module):
             encoder_inputs = torch.cat((encoder_inputs, encoder_dummy), 1)
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
-        if b == self.args.ally_num * self.args.batch_size:
-            history = self.decoder_outputs_train.clone()
-        elif b == self.args.ally_num:
-            history = self.decoder_outputs_test.clone()
-        else:
-            error("wrong output size")
+        decoder_outs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, decoder_outs, None)
+        q = self.basic_action_embedding(decoder_outs[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
-        history, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, history, None)
-        q = self.basic_action_embedding(history[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
-
-        if b == self.args.ally_num * self.args.batch_size:
-            self.decoder_outputs_train = torch.cat((history[:, :1, :], self.decoder_outputs_train[:, :-1, :]), 1)
-        elif b == self.args.ally_num:
-            self.decoder_outputs_test = torch.cat((history[:, :1, :], self.decoder_outputs_test[:, :-1, :]), 1)
-        else:
-            error("wrong output size")
-
-        history = None
-        del history
-
-        return q, hidden
+        return q, hidden, decoder_outs
 
     def fixed_models_weight(self):
         self.transformer.requires_grad = False

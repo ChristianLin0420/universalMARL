@@ -1,3 +1,4 @@
+from aifc import Error
 from modules.agents import REGISTRY as agent_REGISTRY, TRANSFORMERbasedAgent
 from components.action_selectors import REGISTRY as action_REGISTRY
 import torch as th
@@ -16,6 +17,10 @@ class BasicMAC:
         self.action_selector = action_REGISTRY[args.action_selector](args)
 
         self.hidden_states = None
+
+        if args.agent == "fuseformer++":
+            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder, args.emb).to(args.device)
+            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder, args.emb).to(args.device)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -68,9 +73,30 @@ class BasicMAC:
                 else:
                     hidden_state = self.hidden_states.reshape(-1, 1, hidden_size)
                 
-                agent_outs, self.hidden_states = self.agent(agent_inputs,
-                                                            hidden_state,
-                                                            self.args.enemy_num, self.args.ally_num)
+                if self.args.agent == "fuseformer++":
+                    if agent_inputs.size(0) == self.args.ally_num:
+                        self.decoder_outputs_train *= 0
+                        decoder_outs = self.decoder_outputs_test
+                    elif agent_inputs.size(0) == self.args.ally_num * self.args.batch_size:
+                        self.decoder_outputs_test *= 0
+                        decoder_outs = self.decoder_outputs_train
+                    else:
+                        Error("wrong inputs")
+
+                    agent_outs, self.hidden_states, decoder_outs = self.agent(agent_inputs,
+                                                                              hidden_state,
+                                                                              decoder_outs,
+                                                                              self.args.enemy_num, self.args.ally_num)
+
+                    if agent_inputs.size(0) == self.args.ally_num:
+                        self.decoder_outputs_test = th.cat((decoder_outs[:, :1, :], self.decoder_outputs_test[:, :-1, :]), 1)
+                    elif agent_inputs.size(0) == self.args.ally_num * self.args.batch_size:
+                        self.decoder_outputs_train = th.cat((decoder_outs[:, :1, :], self.decoder_outputs_train[:, :-1, :]), 1)
+                    
+                else:
+                    agent_outs, self.hidden_states = self.agent(agent_inputs,
+                                                                hidden_state,
+                                                                self.args.enemy_num, self.args.ally_num)
 
             else:
                 agent_outs, self.hidden_states = self.agent(agent_inputs, self.hidden_states.reshape(-1, 1, self.args.emb), env = self.args.env)
