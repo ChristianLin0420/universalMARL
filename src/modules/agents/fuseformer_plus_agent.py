@@ -47,10 +47,12 @@ class FouseformerPlusAgent(nn.Module):
             encoder_inputs = torch.cat((encoder_inputs, encoder_dummy), 1)
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
-        history = self.decoder_outputs_test.detach()
-
         if b == self.args.ally_num * self.args.batch_size:
-            history = self.decoder_outputs_train.detach()
+            history = self.decoder_outputs_train.clone()
+        elif b == self.args.ally_num:
+            history = self.decoder_outputs_test.clone()
+        else:
+            error("wrong output size")
 
         history, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, history, None)
         q = self.basic_action_embedding(history[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
