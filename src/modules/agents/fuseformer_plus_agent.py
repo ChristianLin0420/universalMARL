@@ -62,6 +62,9 @@ class FouseformerPlusAgent(nn.Module):
         else:
             error("wrong output size")
 
+        history = None
+        del history
+
         return q, hidden
 
     def fixed_models_weight(self):
