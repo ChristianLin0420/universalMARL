@@ -30,9 +30,7 @@ class FouseformerPlus(nn.Module):
 
         self.output_dim = output_dim
 
-        self.d_tokens = None
-
-    def forward(self, a, e, h, mask):
+    def forward(self, a, e, h, m, mask):
 
         agent_token = self.agent_token_embedding(a[:, :1, :])
         entity_token = self.entity_token_embedding(torch.cat((a[:, 1:, :], e), 1))
@@ -45,29 +43,10 @@ class FouseformerPlus(nn.Module):
         encoder_tokens = torch.cat((tokens, h), 1)
 
         encoder_tokens = self.encoder(encoder_tokens, mask)
-
-        agent_encdoer_tokens = encoder_tokens[:, :1, :]
-
-        if self.d_tokens is None:
-            self.d_tokens = torch.zeros(agent_encdoer_tokens.size(0), self.args.max_memory_decoder, agent_encdoer_tokens.size(-1)).to(self.args.device)
-        else:
-            if self.d_tokens.size(0) <= agent_encdoer_tokens.size(0):
-                repeat = agent_encdoer_tokens.size(0) // self.d_tokens.size(0) - 1
-                tmp = self.d_tokens
-
-                for _ in range(repeat):
-                    self.d_tokens = torch.cat((self.d_tokens, tmp), 0)
-
-                tmp = None
-            else:
-                self.d_tokens = None
-                self.d_tokens = torch.zeros(agent_encdoer_tokens.size(0), self.args.max_memory_decoder, agent_encdoer_tokens.size(-1)).to(self.args.device)
-                
-        assert self.d_tokens.size(0) == a.size(0)
         
-        decoder_tokens = self.d_tokens + self.memory_pos_emb
-        d = self.decoder(decoder_tokens, encoder_tokens)
+        m = m + self.memory_pos_emb
+        d = self.decoder(m, encoder_tokens[:, :1, :])
 
-        self.d_tokens = torch.cat((d[:, :1, :], self.d_tokens[:, :-1, :]), 1)
+        m = torch.cat((d[:, :1, :], m[:, :-1, :]), 1)
 
-        return d[:, :1, :], encoder_tokens[:, -1:, :]
+        return m, encoder_tokens[:, -1:, :]
