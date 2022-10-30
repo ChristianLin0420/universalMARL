@@ -15,8 +15,7 @@ class FouseformerPlusAgent(nn.Module):
         self.transformer = FouseformerPlus(args, args.token_dim, args.emb)
 
         # Output optimal action
-        self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size)
-        self.attack_action_embedding = nn.Linear(args.emb, 1)
+        self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
 
     def init_hidden(self):
         # make hidden states on same device as model
@@ -46,9 +45,7 @@ class FouseformerPlusAgent(nn.Module):
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
         outputs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, None)
-        basic_q = self.basic_action_embedding(outputs[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
-        attack_q = self.attack_action_embedding(outputs[:, 1:task_enemy_num+1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
-        q = torch.cat((basic_q, attack_q), 1)
+        q = self.basic_action_embedding(outputs.contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
         return q, hidden
 

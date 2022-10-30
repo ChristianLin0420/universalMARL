@@ -46,10 +46,14 @@ class TwoDPositionalEncoding(nn.Module):
             for y in range(max_len):
                 self.encoding[x, y, :] = torch.cat((self.x_encoding[x, :], self.y_encoding[y, :]), -1)
 
-    def forward(self, tokens):
+    def forward(self, tokens, concat = False):
 
         visible_range = 9
-        pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb).to(self.device)
+
+        if concat:
+            pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb // 2).to(self.device)
+        else:
+            pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb).to(self.device)
 
         tokens = torch.mul(tokens, visible_range)
         tokens = torch.round(tokens).type(torch.LongTensor)

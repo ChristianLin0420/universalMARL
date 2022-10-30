@@ -38,3 +38,6 @@ class PositionalEncoding(nn.Module):
             return self.encoding[:x.size(1), :]
         else:
             pass
+
+    def generate(self):
+        return self.encoding
