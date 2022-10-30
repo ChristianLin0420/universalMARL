@@ -17,7 +17,8 @@ class FouseformerPlusAgent(nn.Module):
         # Output optimal action
         self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
 
-        self.decoder_outputs = torch.zeros(args.enemy_num * args.batch_size, args.max_memory_decoder, args.emb).to(args.device)
+        self.decoder_outputs_test = torch.zeros(args.ally_num, args.max_memory_decoder, args.emb).to(args.device)
+        self.decoder_outputs_train = torch.zeros(args.ally_num * args.batch_size, args.max_memory_decoder, args.emb).to(args.device)
 
     def init_hidden(self):
         # make hidden states on same device as model
@@ -46,8 +47,20 @@ class FouseformerPlusAgent(nn.Module):
             encoder_inputs = torch.cat((encoder_inputs, encoder_dummy), 1)
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
-        self.decoder_outputs[:encoder_inputs.size(0), :, :], hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, self.decoder_outputs[:encoder_inputs.size(0), :, :], None)
-        q = self.basic_action_embedding(self.decoder_outputs[:encoder_inputs.size(0), :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
+        history = self.decoder_outputs_test.detach()
+
+        if b == self.args.ally_num * self.args.batch_size:
+            history = self.decoder_outputs_train.detach()
+
+        history, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, history, None)
+        q = self.basic_action_embedding(history[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
+
+        if b == self.args.ally_num * self.args.batch_size:
+            self.decoder_outputs_train = torch.cat((history[:, :1, :], self.decoder_outputs_train[:, :-1, :]), 1)
+        elif b == self.args.ally_num:
+            self.decoder_outputs_test = torch.cat((history[:, :1, :], self.decoder_outputs_test[:, :-1, :]), 1)
+        else:
+            error("wrong output size")
 
         return q, hidden
 
