@@ -52,18 +52,21 @@ class FouseformerPlus(nn.Module):
         if self.d_tokens is None:
             self.d_tokens = torch.zeros(agent_encdoer_tokens.size(0), self.args.max_memory_decoder, agent_encdoer_tokens.size(-1)).to(self.args.device)
         else:
-            if self.d_tokens.size(0) != agent_encdoer_tokens.size(0):
+            if self.d_tokens.size(0) <= agent_encdoer_tokens.size(0):
                 repeat = agent_encdoer_tokens.size(0) // self.d_tokens.size(0) - 1
+                tmp = self.d_tokens
 
                 for _ in range(repeat):
-                    self.d_tokens = torch.cat((self.d_tokens, self.d_tokens), 0)
-
+                    self.d_tokens = torch.cat((self.d_tokens, tmp), 0)
+            else:
+                self.d_tokens = torch.zeros(agent_encdoer_tokens.size(0), self.args.max_memory_decoder, agent_encdoer_tokens.size(-1)).to(self.args.device)
+                
         assert self.d_tokens.size(0) == a.size(0)
         
         d_pos = self.memory_embedding.generate()
         decoder_tokens = self.d_tokens + d_pos
         d = self.decoder(decoder_tokens, encoder_tokens)
 
-        self.d_tokens = torch.cat((d[:, :1, :], self.d_tokens[:, 1:, :]), 1)
+        self.d_tokens = torch.cat((d[:, :1, :], self.d_tokens[:, :-1, :]), 1)
 
         return d[:, :1, :], encoder_tokens[:, -1:, :]
