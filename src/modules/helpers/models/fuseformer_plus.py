@@ -45,8 +45,6 @@ class FouseformerPlus(nn.Module):
         encoder_tokens = self.encoder(encoder_tokens, mask)
         
         m = m + self.memory_pos_emb
-        d = self.decoder(m, encoder_tokens[:, :1, :])
-
-        m = torch.cat((d[:, :1, :], m[:, :-1, :]), 1)
+        m = self.decoder(m, encoder_tokens[:, :1, :])
 
         return m, encoder_tokens[:, -1:, :]

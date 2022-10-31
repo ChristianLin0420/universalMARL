@@ -75,13 +75,19 @@ class BasicMAC:
                 
                 if self.args.agent == "fuseformer++":
                     if agent_inputs.size(0) == self.args.ally_num:
-                        self.decoder_outputs_train *= 0
+                        self.decoder_outputs_train = None
                         decoder_outs = self.decoder_outputs_test
                     elif agent_inputs.size(0) == self.args.ally_num * self.args.batch_size:
-                        self.decoder_outputs_test *= 0
+                        self.decoder_outputs_test = None
                         decoder_outs = self.decoder_outputs_train
                     else:
                         Error("wrong inputs")
+
+                    if self.decoder_outputs_train is None:
+                        self.decoder_outputs_train = th.zeros(self.args.ally_num * self.args.batch_size, self.args.max_memory_decoder, self.args.emb).to(self.args.device)
+
+                    if self.decoder_outputs_test is None:
+                        self.decoder_outputs_test = th.zeros(self.args.ally_num, self.args.max_memory_decoder, self.args.emb).to(self.args.device)
 
                     agent_outs, self.hidden_states, decoder_outs = self.agent(agent_inputs,
                                                                               hidden_state,
@@ -93,6 +99,8 @@ class BasicMAC:
                     elif agent_inputs.size(0) == self.args.ally_num * self.args.batch_size:
                         self.decoder_outputs_train = th.cat((decoder_outs[:, :1, :], self.decoder_outputs_train[:, :-1, :]), 1)
                     
+                    decoder_outs = None
+                    del decoder_outs
                 else:
                     agent_outs, self.hidden_states = self.agent(agent_inputs,
                                                                 hidden_state,
