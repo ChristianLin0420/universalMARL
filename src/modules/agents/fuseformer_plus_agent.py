@@ -47,7 +47,7 @@ class FouseformerPlusAgent(nn.Module):
         decoder_outs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, decoder_outs, None)
         q = self.basic_action_embedding(decoder_outs[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
-        return q, hidden, decoder_outs
+        return q, hidden, decoder_outs[:, :1, :]
 
     def fixed_models_weight(self):
         self.transformer.requires_grad = False
