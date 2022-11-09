@@ -15,7 +15,10 @@ class FouseformerPlusAgent(nn.Module):
         self.transformer = FouseformerPlus(args, args.token_dim, args.emb)
 
         # Output optimal action
-        self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
+        if args.checkpoint_path == "":
+            self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
+        else:
+            self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.min_enemy_num)
 
     def init_hidden(self):
         # make hidden states on same device as model
