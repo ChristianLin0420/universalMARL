@@ -48,11 +48,11 @@ class FouseformerPlusAgent(nn.Module):
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
         decoder_outs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, decoder_outs, None)
-        q = self.basic_action_embedding(decoder_outs[:, :1, :].contiguous().view(-1, self.args.emb).to(self.args.device)).view(b, -1, 1)
+        q = self.basic_action_embedding(decoder_outs[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
         return q, hidden, decoder_outs[:, :1, :]
 
     def fixed_models_weight(self):
-        self.basic_action_embedding = nn.Linear(self.args.emb, self.args.action_space_size + self.args.enemy_num)
+        self.basic_action_embedding = nn.Linear(self.args.emb, self.args.action_space_size + self.args.enemy_num).to(self.args.device)
         self.transformer.requires_grad = False
         self.basic_action_embedding.requires_grad = True
