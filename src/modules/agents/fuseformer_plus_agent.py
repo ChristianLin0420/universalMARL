@@ -53,5 +53,6 @@ class FouseformerPlusAgent(nn.Module):
         return q, hidden, decoder_outs[:, :1, :]
 
     def fixed_models_weight(self):
+        self.attack_action_embedding = nn.Linear(self.args.emb, self.args.action_space_size + self.args.enemy_num)
         self.transformer.requires_grad = False
         self.attack_action_embedding.requires_grad = True
