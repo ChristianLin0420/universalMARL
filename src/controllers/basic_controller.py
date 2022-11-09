@@ -128,7 +128,7 @@ class BasicMAC:
         self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
         if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++"]:
-            self.agent.load_query(path)
+            # self.agent.load_query(path)
             self.agent.fixed_models_weight()
 
     def _build_agents(self, input_shape):
