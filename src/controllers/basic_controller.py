@@ -156,7 +156,8 @@ class BasicMAC:
         # you can implement your own with any other agent type.
         inputs = []
         raw_obs = batch["obs"][:, t]
-        arranged_obs = th.cat((raw_obs[:, :, -1:], raw_obs[:, :, :-1]), 2)
+        rearranged_idx = self.args.own_feature
+        arranged_obs = th.cat((raw_obs[:, :, -rearranged_idx:], raw_obs[:, :, :-rearranged_idx]), 2)
 
         if env == "sc2":
             token_size = self.args.token_dim

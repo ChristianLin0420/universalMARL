@@ -15,7 +15,8 @@ smac_maps_features = {
     "2c_vs_64zg":   [4, 5, 6, 2, 64, 64, 2], 
     "5m_vs_6m":     [4, 5, 5, 1, 6, 9, 8],
     "8m_vs_9m":     [4, 5, 5, 1, 6, 9, 8], 
-    "10m_vs_11m":   [4, 5, 5, 1, 6, 11, 10]
+    "10m_vs_11m":   [4, 5, 5, 1, 6, 11, 10],
+    "27m_vs_30m":   [4, 5, 5, 1, 3, 30, 28]
 }
 
 smac_maps_entities = {
@@ -32,7 +33,8 @@ smac_maps_entities = {
     "2c_vs_64zg":   [2, 64], 
     "5m_vs_6m":     [5, 6],
     "8m_vs_9m":     [8, 9], 
-    "10m_vs_11m":   [10, 11]
+    "10m_vs_11m":   [10, 11],
+    "27m_vs_30m":   [27, 30]
 }
 
 ''' 
@@ -80,9 +82,9 @@ def get_smac_map_config(env_name):
     return {
         "ally_num": smac_maps_entities[env_name][0], 
         "enemy_num": smac_maps_entities[env_name][1],
-        "enemy_feature": 5, #smac_maps_features[env_name][1],
-        "own_feature": 1, #smac_maps_features[env_name][3],
-        "token_dim": 5, #smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+        "enemy_feature": smac_maps_features[env_name][1],
+        "own_feature": smac_maps_features[env_name][3],
+        "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
         "min_enemy_num": smac_maps_features[env_name][4],
         "max_enemy_num": smac_maps_features[env_name][5],
         "max_ally_num": smac_maps_features[env_name][6],
