@@ -166,13 +166,9 @@ class BasicMAC:
             reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)
 
         inputs.append(reshaped_obs)
-        
-        if self.args.use_cuda:
-            inputs = th.cat(inputs, dim=1).cuda()
-        else:
-            inputs = th.cat(inputs, dim=1)
+        inputs = th.cat(inputs, dim=1)
 
-        return inputs
+        return inputs.to(self.args.device)
 
     def _get_input_shape(self, scheme):
         input_shape = scheme["obs"]["vshape"]
