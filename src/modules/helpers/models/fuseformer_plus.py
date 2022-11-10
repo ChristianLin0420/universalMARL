@@ -48,3 +48,10 @@ class FouseformerPlus(nn.Module):
         m = self.decoder(m, encoder_tokens[:, :1, :])
 
         return m, encoder_tokens[:, -1:, :]
+
+    def fixed_models_weight(self):
+        self.agent_token_embedding.requires_grad = False
+        self.entity_token_embedding.requires_grad = False
+        self.position_embedding.requires_grad = False
+        self.memory_embedding.requires_grad = False
+        self.encoder.requires_grad = False

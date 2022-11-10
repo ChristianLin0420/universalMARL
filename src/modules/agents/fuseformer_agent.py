@@ -62,5 +62,5 @@ class FouseformerAgent(nn.Module):
         self.basic_action_query.requires_grad =  False
 
     def fixed_models_weight(self):
-        self.transformer.requires_grad = False
+        self.transformer.fixed_models_weight()
         self.action_embedding.requires_grad = True
