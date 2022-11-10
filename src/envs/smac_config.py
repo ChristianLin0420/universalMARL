@@ -82,9 +82,9 @@ def get_smac_map_config(env_name):
     return {
         "ally_num": smac_maps_entities[env_name][0], 
         "enemy_num": smac_maps_entities[env_name][1],
-        "enemy_feature": smac_maps_features[env_name][1],
-        "own_feature": smac_maps_features[env_name][3],
-        "token_dim": smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
+        "enemy_feature": 5, #smac_maps_features[env_name][1],
+        "own_feature": 1, #smac_maps_features[env_name][3],
+        "token_dim": 5, #smac_maps_features[env_name][0] + smac_maps_features[env_name][3],
         "min_enemy_num": smac_maps_features[env_name][4],
         "max_enemy_num": smac_maps_features[env_name][5],
         "max_ally_num": smac_maps_features[env_name][6],
