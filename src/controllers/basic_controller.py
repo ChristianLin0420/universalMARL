@@ -18,9 +18,14 @@ class BasicMAC:
 
         self.hidden_states = None
 
-        if args.agent == "fuseformer++":
-            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder, args.emb).to(args.device)
-            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder, args.emb).to(args.device)
+        if args.agent in ["fuseformer++", "fuseformer_extra"]:
+            if args.agent == "fuseformer++":
+                factor = 1
+            elif args.agent == "fuseformer_extra":
+                factor = 2
+
+            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder * factor, args.emb).to(args.device)
+            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder * factor, args.emb).to(args.device)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -73,7 +78,13 @@ class BasicMAC:
                 else:
                     hidden_state = self.hidden_states.reshape(-1, 1, hidden_size)
                 
-                if self.args.agent == "fuseformer++":
+                if self.args.agent in ["fuseformer++", "fuseformer_extra"]:
+                    
+                    if self.args.agent == "fuseformer++":
+                        shift = 1
+                    elif self.args.agent == "fuseformer_extra":
+                        shift = 2
+
                     if agent_inputs.size(0) == self.args.ally_num:
                         self.decoder_outputs_train = th.mul(self.decoder_outputs_train, 0.0)
                         agent_outs, self.hidden_states, decoder_outs = self.agent(agent_inputs,
@@ -81,7 +92,7 @@ class BasicMAC:
                                                                                   self.decoder_outputs_test,
                                                                                   self.args.enemy_num, self.args.ally_num)
                         decoder_outs = decoder_outs.detach()
-                        self.decoder_outputs_test = th.cat((decoder_outs, self.decoder_outputs_test[:, :-1, :]), 1)
+                        self.decoder_outputs_test = th.cat((decoder_outs, self.decoder_outputs_test[:, :-shift, :]), 1)
                     elif agent_inputs.size(0) == self.args.ally_num * self.args.batch_size:
                         self.decoder_outputs_test = th.mul(self.decoder_outputs_test, 0.0)
                         agent_outs, self.hidden_states, decoder_outs = self.agent(agent_inputs,
@@ -89,7 +100,7 @@ class BasicMAC:
                                                                                   self.decoder_outputs_train,
                                                                                   self.args.enemy_num, self.args.ally_num)
                         decoder_outs = decoder_outs.detach()
-                        self.decoder_outputs_train = th.cat((decoder_outs, self.decoder_outputs_train[:, :-1, :]), 1)
+                        self.decoder_outputs_train = th.cat((decoder_outs, self.decoder_outputs_train[:, :-shift, :]), 1)
                     else:
                         Error("wrong inputs")
                 else:
@@ -127,7 +138,7 @@ class BasicMAC:
     def load_models(self, path):
         self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
-        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++"]:
+        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++", "fuseformer_extra"]:
             # self.agent.load_query(path)
             self.agent.fixed_models_weight()
 

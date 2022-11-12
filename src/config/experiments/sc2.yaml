@@ -27,5 +27,6 @@ agent_models: [
   # "trackformer", 
   # "gpt",
   # "fuseformer", 
-  "fuseformer++"
+  # "fuseformer++",
+  "fuseformer_extra"
 ]
