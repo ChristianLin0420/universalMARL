@@ -22,6 +22,7 @@ class FouseformerExtra(nn.Module):
         else:
             self.position_embedding = TwoDPositionalEncoding(args, args.emb // 2, args.max_len, args.device)
 
+        self.memory_encoder = nn.Linear(args.emb * 2, args.emb)
         self.memory_embedding = PositionalEncoding(args.emb, args.max_memory_decoder * 2, args.device)
         self.memory_pos_emb = self.memory_embedding.generate()
 
@@ -44,6 +45,7 @@ class FouseformerExtra(nn.Module):
 
         encoder_tokens = self.encoder(encoder_tokens, mask)
         
+        m = self.memory_encoder(m)
         m = m + self.memory_pos_emb
         m = self.decoder(m, encoder_tokens[:, :1, :])
 
@@ -53,5 +55,6 @@ class FouseformerExtra(nn.Module):
         self.agent_token_embedding.requires_grad = False
         self.entity_token_embedding.requires_grad = False
         self.position_embedding.requires_grad = False
+        self.memory_encoder.requires_grad = False
         self.memory_embedding.requires_grad = False
         self.encoder.requires_grad = False

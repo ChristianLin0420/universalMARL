@@ -48,7 +48,7 @@ class FouseformerExtraAgent(nn.Module):
             decoder_inputs = torch.cat((decoder_inputs, decoder_dummy), 1)
 
         encoder_outs, decoder_outs, hidden = self.transformer.forward(encoder_inputs, decoder_inputs, hidden_state, decoder_outs, None)
-        outs = torch.cat((encoder_outs, decoder_outs[:, :1, :]), 1)
+        outs = torch.cat((encoder_outs, decoder_outs[:, :1, :]), -1)
         q = self.basic_action_embedding(decoder_outs[:, :1, :].contiguous().view(-1, self.args.emb)).view(b, -1, 1)
 
         return q, hidden, outs

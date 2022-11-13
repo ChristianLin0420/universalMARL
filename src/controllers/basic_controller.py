@@ -24,8 +24,8 @@ class BasicMAC:
             elif args.agent == "fuseformer_extra":
                 factor = 2
 
-            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder * factor, args.emb).to(args.device)
-            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder * factor, args.emb).to(args.device)
+            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder * factor, args.emb * factor).to(args.device)
+            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder * factor, args.emb * factor).to(args.device)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -80,10 +80,7 @@ class BasicMAC:
                 
                 if self.args.agent in ["fuseformer++", "fuseformer_extra"]:
                     
-                    if self.args.agent == "fuseformer++":
-                        shift = 1
-                    elif self.args.agent == "fuseformer_extra":
-                        shift = 2
+                    shift = 1
 
                     if agent_inputs.size(0) == self.args.ally_num:
                         self.decoder_outputs_train = th.mul(self.decoder_outputs_train, 0.0)
