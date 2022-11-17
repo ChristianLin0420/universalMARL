@@ -18,14 +18,18 @@ class BasicMAC:
 
         self.hidden_states = None
 
-        if args.agent in ["fuseformer++", "fuseformer_extra"]:
-            if args.agent == "fuseformer++":
-                factor = 1
-            elif args.agent == "fuseformer_extra":
-                factor = 2
+        if args.agent in ["fuseformer++", "fuseformer_extra", "stformer"]:
+            m_factor = 1
+            e_factor = 1
 
-            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder * factor, args.emb * factor).to(args.device)
-            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder * factor, args.emb * factor).to(args.device)
+            if args.agent in ["stformer"]:
+                m_factor = 2
+            elif args.agent in ["fuseformer_extra"]:
+                m_factor = 2
+                e_factor = 2
+
+            self.decoder_outputs_test = th.zeros(args.ally_num, args.max_memory_decoder * m_factor, args.emb * e_factor).to(args.device)
+            self.decoder_outputs_train = th.zeros(args.ally_num * args.batch_size, args.max_memory_decoder * m_factor, args.emb * e_factor).to(args.device)
 
     def select_actions(self, ep_batch, t_ep, t_env, bs=slice(None), test_mode=False):
         # Only select actions for the selected batch elements in bs
@@ -78,9 +82,12 @@ class BasicMAC:
                 else:
                     hidden_state = self.hidden_states.reshape(-1, 1, hidden_size)
                 
-                if self.args.agent in ["fuseformer++", "fuseformer_extra"]:
+                if self.args.agent in ["fuseformer++", "fuseformer_extra", "stformer"]:
                     
                     shift = 1
+
+                    if self.args.agent == "stformer":
+                        shift = 2
 
                     if agent_inputs.size(0) == self.args.ally_num:
                         self.decoder_outputs_train = th.mul(self.decoder_outputs_train, 0.0)
@@ -135,7 +142,7 @@ class BasicMAC:
     def load_models(self, path):
         self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
-        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++", "fuseformer_extra"]:
+        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++", "fuseformer_extra", "stformer"]:
             # self.agent.load_query(path)
             self.agent.fixed_models_weight()
 

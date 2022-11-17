@@ -28,5 +28,6 @@ agent_models: [
   # "gpt",
   # "fuseformer", 
   # "fuseformer++",
-  "fuseformer_extra"
+  # "fuseformer_extra", 
+  "stformer"
 ]
