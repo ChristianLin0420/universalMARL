@@ -3,6 +3,7 @@ from components.episode_buffer import EpisodeBatch
 from modules.mixers.vdn import VDNMixer
 from modules.mixers.qmix import QMixer
 from modules.mixers.rmix import RMixer
+from modules.mixers.gmix import GMixer
 import torch as th
 from torch.optim import RMSprop
 
@@ -25,6 +26,8 @@ class QLearner:
                 self.mixer = QMixer(args)
             elif args.mixer == "rmix":
                 self.mixer = RMixer(args)
+            elif args.mixer == "gmix":
+                self.mixer = GMixer(args)
             else:
                 raise ValueError("Mixer {} not recognised.".format(args.mixer))
             self.params += list(self.mixer.parameters())
@@ -143,4 +146,7 @@ class QLearner:
         
         if self.mixer is not None:
             self.mixer.load_state_dict(th.load("{}/mixer.th".format(path), map_location=lambda storage, loc: storage))
+            
+            if self.args.checkpoint != "" and self.args.mixer == "gmix":
+                self.mixer.fixed_models_weight()
         self.optimiser.load_state_dict(th.load("{}/opt.th".format(path), map_location=lambda storage, loc: storage))
