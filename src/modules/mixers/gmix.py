@@ -35,6 +35,8 @@ class GMixer(nn.Module):
             nn.Linear(self.emb_dim, 1)
         )
 
+        self.q_value_map_network = nn.Linear(self.emb_dim, 1)
+
         self.outputs_test = th.zeros(1, args.max_memory_decoder, self.emb_dim).to(args.device)
         self.outputs_train = th.zeros(args.batch_size, args.max_memory_decoder, self.emb_dim).to(args.device)
 
@@ -105,12 +107,14 @@ class GMixer(nn.Module):
             out = F.softmax(out, dim=2)
             hidden = out.transpose(1, 2).contiguous().view(b, self.args.max_memory_decoder, self.emb_dim)
 
-            w_final = th.abs(self.hyper_w_final(states))
-            w_final = w_final.view(-1, self.emb_dim, 1)
+            # w_final = th.abs(self.hyper_w_final(states))
+            # w_final = w_final.view(-1, self.emb_dim, 1)
             
-            v = self.V(states).view(-1, 1, 1)
-            y = th.bmm(hidden[:, :1, :], w_final) + v
-            q_tot = y.view(b, 1, 1)
+            # v = self.V(states).view(-1, 1, 1)
+            # y = th.bmm(hidden[:, :1, :], w_final) + v
+            # q_tot = y.view(b, 1, 1)
+
+            q_tot = self.q_value_map_network(hidden[:, :1, :]).view(b, 1, 1)
 
             if q_tots is None:
                 q_tots = q_tot
