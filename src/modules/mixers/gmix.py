@@ -56,7 +56,8 @@ class GMixer(nn.Module):
         padding = th.zeros(agent_qs.size(0), agent_qs.size(1), padding_size).to(self.args.device)
         agent_qs = th.cat([agent_qs, padding], axis = -1)
 
-        return agent_qs.view(-1, 1, self.args.max_ally_num)
+        # return agent_qs.view(-1, 1, self.args.max_ally_num)
+        return agent_qs.view(-1, 1, self.emb_dim)
 
     def forward(self, agent_qss, statess):
         b, t, e = agent_qss.size()
