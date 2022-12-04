@@ -12,7 +12,7 @@ class GMixer(nn.Module):
         self.args = args
         self.n_agents = args.max_ally_num
         self.input_dim = args.max_states_dim // 4
-        self.emb_dim = self.args.emb // 2
+        self.emb_dim = args.max_ally_num #self.args.emb // 2
 
         self.position_embedding = PositionalEncoding(self.emb_dim, args.max_memory_decoder, args.device)
         self.pos = self.position_embedding.generate()
@@ -67,7 +67,7 @@ class GMixer(nn.Module):
 
             states = self.state_padding(states)
             agent_qs = self.agent_qs_padding(agent_qs)
-            agent_qs = self.qs_map_network(agent_qs)
+            # agent_qs = self.qs_map_network(agent_qs)
             agent_qs = agent_qs.detach()
 
             # map states to lower dimension
