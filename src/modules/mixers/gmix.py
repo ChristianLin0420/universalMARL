@@ -12,7 +12,7 @@ class GMixer(nn.Module):
         self.args = args
         self.n_agents = args.max_ally_num
         self.input_dim = args.max_states_dim // 4
-        self.emb_dim = args.max_ally_num #self.args.emb // 2
+        self.emb_dim = 8 #self.args.emb // 2
 
         self.position_embedding = PositionalEncoding(self.emb_dim, args.max_memory_decoder, args.device)
         self.pos = self.position_embedding.generate()
