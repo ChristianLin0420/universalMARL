@@ -102,6 +102,7 @@ class GMixer(nn.Module):
 
             dot = F.softmax(dot, dim=2)
             out = th.bmm(dot, values).view(b, self.args.max_memory_decoder, self.emb_dim)
+            out = F.softmax(out, dim=2)
             hidden = out.transpose(1, 2).contiguous().view(b, self.args.max_memory_decoder, self.emb_dim)
 
             w_final = th.abs(self.hyper_w_final(states))
