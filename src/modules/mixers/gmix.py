@@ -132,4 +132,5 @@ class GMixer(nn.Module):
         self.tovalues.requires_grad = False
         self.hyper_w_final.requires_grad = False
         self.V.requires_grad = False
+        self.q_value_map_network.requires_grad = False
 
