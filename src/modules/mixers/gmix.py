@@ -53,11 +53,15 @@ class GMixer(nn.Module):
         
         # padding_size = self.args.max_ally_num - agent_qs.size(2)
         padding_size = self.emb_dim - agent_qs.size(2)
-        padding = th.zeros(agent_qs.size(0), agent_qs.size(1), padding_size).to(self.args.device)
-        agent_qs = th.cat([agent_qs, padding], axis = -1)
 
-        # return agent_qs.view(-1, 1, self.args.max_ally_num)
-        return agent_qs.view(-1, 1, self.emb_dim)
+        if padding_size == 0:
+            return agent_qs
+        else:
+            padding = th.zeros(agent_qs.size(0), agent_qs.size(1), padding_size).to(self.args.device)
+            agent_qs = th.cat([agent_qs, padding], axis = -1)
+
+            # return agent_qs.view(-1, 1, self.args.max_ally_num)
+            return agent_qs.view(-1, 1, self.emb_dim)
 
     def forward(self, agent_qss, statess):
         b, t, e = agent_qss.size()
@@ -106,7 +110,6 @@ class GMixer(nn.Module):
 
             dot = F.softmax(dot, dim=2)
             out = th.bmm(dot, values).view(b, self.args.max_memory_decoder, self.emb_dim)
-            out = F.softmax(out, dim=2)
             hidden = out.transpose(1, 2).contiguous().view(b, self.args.max_memory_decoder, self.emb_dim)
 
             # w_final = th.abs(self.hyper_w_final(states))

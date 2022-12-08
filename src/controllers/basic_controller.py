@@ -18,13 +18,13 @@ class BasicMAC:
 
         self.hidden_states = None
 
-        if args.agent in ["fuseformer++", "fuseformer_extra", "stformer"]:
+        if args.agent in ["fuseformer++", "fuseformer_extra", "stformer", "stformer++"]:
             m_factor = 1
             e_factor = 1
 
             if args.agent in ["stformer"]:
                 m_factor = 2
-            elif args.agent in ["fuseformer_extra"]:
+            elif args.agent in ["fuseformer_extra", "stformer++"]:
                 m_factor = 2
                 e_factor = 2
 
@@ -82,7 +82,7 @@ class BasicMAC:
                 else:
                     hidden_state = self.hidden_states.reshape(-1, 1, hidden_size)
                 
-                if self.args.agent in ["fuseformer++", "fuseformer_extra", "stformer"]:
+                if self.args.agent in ["fuseformer++", "fuseformer_extra", "stformer", "stformer++"]:
                     
                     shift = 1
 
@@ -142,7 +142,7 @@ class BasicMAC:
     def load_models(self, path):
         self.agent.load_state_dict(th.load("{}/agent.th".format(path), map_location=lambda storage, loc: storage))
 
-        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++", "fuseformer_extra", "stformer"]:
+        if self.args.agent in ["transfermer", "transfermer++", "gpt", "perceiver_io", "perceiver++", "double_perceiver", "updet", "fuseformer", "fuseformer++", "fuseformer_extra", "stformer", "stformer++"]:
             # self.agent.load_query(path)
             self.agent.fixed_models_weight()
 

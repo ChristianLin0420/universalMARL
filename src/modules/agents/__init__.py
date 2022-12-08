@@ -54,6 +54,9 @@ REGISTRY['fuseformer_extra'] = FouseformerExtraAgent
 from .stformer_agent import STformerAgent
 REGISTRY['stformer'] = STformerAgent
 
+from .stformer_plus_agent import STformerPlusAgent
+REGISTRY['stformer++'] = STformerPlusAgent
+
 TRANSFORMERbasedAgent = [   'updet', 
                             'dummy_updet', 
                             'transformer_aggregation', 
@@ -70,4 +73,5 @@ TRANSFORMERbasedAgent = [   'updet',
                             'fuseformer',
                             'fuseformer++',
                             'fuseformer_extra', 
-                            'stformer'   ]
+                            'stformer', 
+                            'stformer++'   ]
