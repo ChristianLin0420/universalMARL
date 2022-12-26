@@ -5,8 +5,9 @@ env: "sc2"
 parallel: False
 
 mixing_networks: [
-  "vdn",
+  # "vdn",
   # "qmix",
+  "qplex",
   # "rmix",
   # "gmix",
   # "qtran",
@@ -29,7 +30,7 @@ agent_models: [
   # "gpt",
   # "fuseformer", 
   # "fuseformer++",
-  # "fuseformer_extra", 
+  "fuseformer_extra", 
   # "stformer",
-  "stformer++"
+  # "stformer++"
 ]
