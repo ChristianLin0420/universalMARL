@@ -5,9 +5,9 @@ env: "sc2"
 parallel: False
 
 mixing_networks: [
-  # "vdn",
+  "vdn",
   # "qmix",
-  "qplex",
+  # "qplex",
   # "rmix",
   # "gmix",
   # "qtran",

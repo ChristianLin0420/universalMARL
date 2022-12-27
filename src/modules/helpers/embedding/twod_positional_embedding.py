@@ -51,7 +51,10 @@ class TwoDPositionalEncoding(nn.Module):
         visible_range = 9
 
         if concat:
-            pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb // 2).to(self.device)
+            if self.args.use_identity:
+                pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb // 4).to(self.device)
+            else:
+                pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb // 2).to(self.device)
         else:
             pos_emb = torch.zeros(tokens.size(0), tokens.size(1), self.args.emb).to(self.device)
 

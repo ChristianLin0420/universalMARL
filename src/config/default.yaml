@@ -64,6 +64,7 @@ dummy_type: 2
 dummy_entity: True
 agent_positional_embedding: True
 max_memory_decoder: 16
+use_identity: False
 
 # --- PerceiverIO parameters ---
 mapping_scalar: 4

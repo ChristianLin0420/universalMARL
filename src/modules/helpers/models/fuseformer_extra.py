@@ -4,6 +4,7 @@ import torch
 
 from modules.helpers.embedding.twod_positional_embedding import TwoDPositionalEncoding
 from modules.helpers.embedding.positional_embedding import PositionalEncoding
+from modules.helpers.embedding.identity_embedding import IdentityEmbedding
 from .encoder import Encoder
 from .transfermer_decoder import TransfermerDecoder
 
@@ -20,7 +21,11 @@ class FouseformerExtra(nn.Module):
         if not args.agent_positional_embedding:
             self.position_embedding = nn.Linear(2, args.emb)
         else:
-            self.position_embedding = TwoDPositionalEncoding(args, args.emb // 2, args.max_len, args.device)
+            if args.use_identity:
+                self.position_embedding = TwoDPositionalEncoding(args, args.emb // 4, args.max_len, args.device)
+                self.identity_embedding = IdentityEmbedding(args, args.batch_size, args.emb // 4, args.map_name, args.dummy_entity, args.device).get_identity_embedding()
+            else:
+                self.position_embedding = TwoDPositionalEncoding(args, args.emb // 2, args.max_len, args.device)
 
         self.memory_encoder = nn.Linear(args.emb * 2, args.emb)
         self.memory_embedding = PositionalEncoding(args.emb, args.max_memory_decoder * 2, args.device)
@@ -40,6 +45,11 @@ class FouseformerExtra(nn.Module):
         pos_emb = self.position_embedding(pos_input[:, :, 2:4], True)
 
         tokens = torch.cat((agent_token, entity_token), 1)
+        b = tokens.size(0)
+
+        if self.args.use_identity:
+            tokens = torch.cat((tokens, self.identity_embedding[:b, :, :]), -1)
+
         tokens = torch.cat((tokens, pos_emb), -1)
         encoder_tokens = torch.cat((tokens, h), 1)
 
