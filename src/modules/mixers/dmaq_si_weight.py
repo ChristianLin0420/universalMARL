@@ -68,8 +68,8 @@ class DMAQ_SI_Weight(nn.Module):
         head_attend_weights = []
         for curr_head_key, curr_head_agents, curr_head_action in zip(all_head_key, all_head_agents, all_head_action):
             x_key = th.abs(curr_head_key).repeat(1, self.n_agents) + 1e-10
-            x_agents = F.sigmoid(curr_head_agents)
-            x_action = F.sigmoid(curr_head_action)
+            x_agents = th.sigmoid(curr_head_agents)
+            x_action = th.sigmoid(curr_head_action)
             weights = x_key * x_agents * x_action
             head_attend_weights.append(weights)
 

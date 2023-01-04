@@ -61,13 +61,6 @@ class TwoDPositionalEncoding(nn.Module):
         tokens = torch.mul(tokens, visible_range)
         tokens = torch.round(tokens).type(torch.LongTensor)
 
-        # for b in range(tokens.size(0)):
-        #     for idx in range(tokens.size(1)):
-        #         x = int(tokens[b, idx, 0])
-        #         y = int(tokens[b, idx, 1])
-        #         pos_emb[b, idx:idx+1, :] = self.encoding[self.delta + x:self.delta + x + 1, 
-        #                                                  self.delta + y:self.delta + y + 1, :]
-
         x = tokens[:, :, 0]
         y = tokens[:, :, 1]
         pos_emb[:, :, :] = self.encoding[x, y, :]

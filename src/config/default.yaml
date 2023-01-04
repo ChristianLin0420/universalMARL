@@ -24,6 +24,7 @@ use_tensorboard: True # Log results to tensorboard
 save_model: True # Save the models to disk
 save_model_interval: 500000 # Save models after this many timesteps
 checkpoint_path: "" # Load a checkpoint from this path
+mixer_checkpoint: "" # Load a mixer checkpoint from this path
 evaluate: False # Evaluate model for test_nepisode episodes and quit (no training)
 load_step: 0 # Load model trained on this many timesteps (0 if choose max possible)
 save_replay: False # Saving the replay of the model loaded from checkpoint_path
@@ -62,7 +63,7 @@ random_mixing_inputs: True
 # --- Fuseformer parameters ---
 dummy_type: 2
 dummy_entity: True
-agent_positional_embedding: True
+agent_positional_embedding: False
 max_memory_decoder: 16
 use_identity: False
 
