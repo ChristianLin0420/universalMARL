@@ -31,14 +31,16 @@ def run(_run, _config, _log):
     logger = Logger(_log)
 
     _log.info("Experiment Parameters:")
-    experiment_params = pprint.pformat(_config, indent = 4, width = 1)
+    experiment_params = pprint.pformat(_config,
+                                       indent=4,
+                                       width=1)
     _log.info("\n\n" + experiment_params + "\n")
 
     # configure tensorboard logger
-    unique_token = "{}__{}__{}".format(args.name, args.agent, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
+    unique_token = "{}__{}".format(args.name, datetime.datetime.now().strftime("%Y-%m-%d_%H-%M-%S"))
     args.unique_token = unique_token
     if args.use_tensorboard:
-        tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", args.experiment, "tb_logs", args.env, args.map_name, args.task_dir)
+        tb_logs_direc = os.path.join(dirname(dirname(abspath(__file__))), "results", "experiment{}".format(args.experiment), "tb_logs", args.map_name, args.mixer)
         tb_exp_direc = os.path.join(tb_logs_direc, "{}").format(unique_token)
         logger.setup_tb(tb_exp_direc)
 
@@ -46,9 +48,7 @@ def run(_run, _config, _log):
     logger.setup_sacred(_run)
 
     # Run and train
-    info = {}
-
-    info = run_sequential(args = args, logger = logger)
+    run_sequential(args=args, logger=logger)
 
     # Clean up after finishing
     print("Exiting Main")
@@ -65,8 +65,6 @@ def run(_run, _config, _log):
     # Making sure framework really exits
     # os._exit(os.EX_OK)
 
-    return info
-
 
 def evaluate_sequential(args, runner):
 
@@ -81,7 +79,7 @@ def evaluate_sequential(args, runner):
 def run_sequential(args, logger):
 
     # Init runner so we can get env info
-    runner = r_REGISTRY[args.runner](args = args, logger = logger)
+    runner = r_REGISTRY[args.runner](args=args, logger=logger)
 
     # Set up schemes and groups here
     env_info = runner.get_env_info()
@@ -98,24 +96,22 @@ def run_sequential(args, logger):
         "reward": {"vshape": (1,)},
         "terminated": {"vshape": (1,), "dtype": th.uint8},
     }
-
     groups = {
         "agents": args.n_agents
     }
-
     preprocess = {
         "actions": ("actions_onehot", [OneHot(out_dim=args.n_actions)])
     }
 
     buffer = ReplayBuffer(scheme, groups, args.buffer_size, env_info["episode_limit"] + 1,
                           preprocess=preprocess,
-                          device = "cpu" if args.buffer_cpu_only else args.device)
+                          device="cpu" if args.buffer_cpu_only else args.device)
 
     # Setup multiagent controller here
     mac = mac_REGISTRY[args.mac](buffer.scheme, groups, args)
 
     # Give runner the scheme
-    runner.setup(scheme = scheme, groups = groups, preprocess = preprocess, mac = mac)
+    runner.setup(scheme=scheme, groups=groups, preprocess=preprocess, mac=mac)
 
     # Learner
     learner = le_REGISTRY[args.learner](mac, buffer.scheme, logger, args)
@@ -144,17 +140,13 @@ def run_sequential(args, logger):
             timestep_to_load = max(timesteps)
         else:
             # choose the timestep closest to load_step
-            timestep_to_load = min(timesteps, key = lambda x: abs(x - args.load_step))
+            timestep_to_load = min(timesteps, key=lambda x: abs(x - args.load_step))
 
         model_path = os.path.join(args.checkpoint_path, str(timestep_to_load))
 
         logger.console_logger.info("Loading model from {}".format(model_path))
         learner.load_models(model_path)
-
-        if args.finetuned:
-            runner.t_env = 0
-        else:
-            runner.t_env = timestep_to_load
+        runner.t_env = timestep_to_load
 
         if args.evaluate or args.save_replay:
             evaluate_sequential(args, runner)
@@ -169,14 +161,12 @@ def run_sequential(args, logger):
     start_time = time.time()
     last_time = start_time
 
-    info = {}
-
     logger.console_logger.info("Beginning training for {} timesteps".format(args.t_max))
 
     while runner.t_env <= args.t_max:
 
         # Run for a whole episode at a time
-        episode_batch = runner.run(test_mode = False)
+        episode_batch = runner.run(test_mode=False)
         buffer.insert_episode_batch(episode_batch)
 
         if buffer.can_sample(args.batch_size):
@@ -205,18 +195,14 @@ def run_sequential(args, logger):
                 runner.run(test_mode=True)
 
         if args.save_model and (runner.t_env - model_save_time >= args.save_model_interval or model_save_time == 0):
-            save_path = os.path.join(args.local_results_path, args.experiment, "models", args.env, args.map_name, args.task_dir, args.unique_token, str(runner.t_env))
-            os.makedirs(save_path, exist_ok = True)
+            model_save_time = runner.t_env
+            save_path = os.path.join(args.local_results_path, "experiment{}".format(args.experiment), "models", args.map_name, args.mixer, args.unique_token, str(runner.t_env))
+            os.makedirs(save_path, exist_ok=True)
             logger.console_logger.info("Saving models to {}".format(save_path))
 
             # learner should handle saving/loading -- delegate actor save/load to mac,
             # use appropriate filenames to do critics, optimizer states
             learner.save_models(save_path)
-
-            if runner.t_env - model_save_time >= args.save_model_interval:
-                info["saved_model_path"] = save_path
-
-            model_save_time = runner.t_env
 
         episode += args.batch_size_run
 
@@ -228,7 +214,6 @@ def run_sequential(args, logger):
     runner.close_env()
     logger.console_logger.info("Finished Training")
 
-    return info
 
 def args_sanity_check(config, _log):
 
@@ -241,6 +226,6 @@ def args_sanity_check(config, _log):
     if config["test_nepisode"] < config["batch_size_run"]:
         config["test_nepisode"] = config["batch_size_run"]
     else:
-        config["test_nepisode"] = (config["test_nepisode"] // config["batch_size_run"]) * config["batch_size_run"]
+        config["test_nepisode"] = (config["test_nepisode"]//config["batch_size_run"]) * config["batch_size_run"]
 
     return config

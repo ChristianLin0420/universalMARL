@@ -175,21 +175,14 @@ class BasicMAC:
     def _build_inputs_transformer(self, batch, t, env = "sc2"):
         # currently we only support battles with marines (e.g. 3m 8m 5m_vs_6m)
         # you can implement your own with any other agent type.
+
         inputs = []
         raw_obs = batch["obs"][:, t]
-        rearranged_idx = self.args.own_feature
-        arranged_obs = th.cat((raw_obs[:, :, -rearranged_idx:], raw_obs[:, :, :-rearranged_idx]), 2)
-
-        if env == "sc2":
-            token_size = self.args.token_dim
-            reshaped_obs = arranged_obs.view(-1, self.args.enemy_num + self.args.ally_num, token_size)
-        elif env == "simple_spread":
-            reshaped_obs = arranged_obs.view(-1, 1 + (self.args.env_args["n_agents"] - 1), self.args.token_dim)
-
+        arranged_obs = th.cat((raw_obs[:, :, -1:], raw_obs[:, :, :-1]), 2)
+        reshaped_obs = arranged_obs.view(-1, 1 + (self.args.enemy_num - 1) + self.args.ally_num, self.args.token_dim)
         inputs.append(reshaped_obs)
-        inputs = th.cat(inputs, dim=1)
-
-        return inputs.to(self.args.device)
+        inputs = th.cat(inputs, dim=1).to(self.args.device)
+        return inputs
 
     def _get_input_shape(self, scheme):
         input_shape = scheme["obs"]["vshape"]
