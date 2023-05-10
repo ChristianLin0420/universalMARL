@@ -154,6 +154,6 @@ class QLearner:
         if self.mixer is not None:
             self.mixer.load_state_dict(th.load(mixer_path, map_location=lambda storage, loc: storage))
             
-            if self.args.checkpoint != "" and self.args.mixer == "gmix":
+            if self.args.checkpoint_path != "" and self.args.mixer == "gmix":
                 self.mixer.fixed_models_weight()
         self.optimiser.load_state_dict(th.load(opt_path, map_location=lambda storage, loc: storage))

@@ -149,6 +149,12 @@ class BasicMAC:
     def _build_agents(self, input_shape):
         self.agent = agent_REGISTRY[self.args.agent](input_shape, self.args)
 
+        print("model size ==============================")
+        for key, value in self.agent.state_dict().items():
+            print(key, th.numel(value))
+        # for parameter in self.agent.parameters():
+        #     print(parameter.size())
+
     def _build_inputs(self, batch, t):
         # Assumes homogenous agents with flat observations.
         # Other MACs might want to e.g. delegate building inputs to each agent

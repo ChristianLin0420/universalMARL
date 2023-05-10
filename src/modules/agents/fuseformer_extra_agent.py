@@ -54,6 +54,6 @@ class FouseformerExtraAgent(nn.Module):
         return q, hidden, outs
 
     def fixed_models_weight(self):
-        self.basic_action_embedding = nn.Linear(self.args.emb, self.args.action_space_size + self.args.enemy_num).to(self.args.device)
+        # self.basic_action_embedding = nn.Linear(self.args.emb, self.args.action_space_size + self.args.enemy_num).to(self.args.device)
         self.transformer.fixed_models_weight()
         self.basic_action_embedding.requires_grad = True
