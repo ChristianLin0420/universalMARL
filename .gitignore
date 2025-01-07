@@ -127,7 +127,8 @@ dmypy.json
 
 # Pyre type checker
 .pyre/
-# 3rdparty/
+3rdparty/
 results/
 SMAC_Maps/
 rsc/
+plot/
