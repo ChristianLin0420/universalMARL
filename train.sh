@@ -1,11 +1,11 @@
 
-export CUDA_VISIBLE_DEVICES=0,1
+export CUDA_VISIBLE_DEVICES=0,1,2
 
 train_count=1
 train_index=0
-agent='updet'
+agent='fuseformer_extra'
 mixers='qmix'
-maps='3s_vs_5z 5m_vs_6m'
+maps='3m'
 gpu_id=1
 
 ### 1c3s5z 2s3z 3m 8m 3s_vs_3z 

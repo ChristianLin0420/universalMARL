@@ -1,6 +1,7 @@
 from collections import defaultdict
 import logging
 import numpy as np
+import wandb
 
 class Logger:
     def __init__(self, console_logger):
@@ -9,8 +10,20 @@ class Logger:
         self.use_tb = False
         self.use_sacred = False
         self.use_hdf = False
+        self.use_wandb = False
 
         self.stats = defaultdict(lambda: [])
+
+    def setup_wandb(self, project_name, config=None, name=None):
+        """
+        Setup wandb logging
+        Args:
+            project_name: Name of the wandb project
+            config: Dictionary of config parameters to log
+            name: Name of this specific run
+        """
+        wandb.init(project=project_name, config=config, name=name)
+        self.use_wandb = True
 
     def setup_tb(self, directory_name):
         # Import here so it doesn't have to be installed if you don't use it
@@ -28,6 +41,9 @@ class Logger:
 
         if self.use_tb:
             self.tb_logger(key, value, t)
+
+        if self.use_wandb:
+            wandb.log({key: value}, step=t)
 
         if self.use_sacred and to_sacred:
             if key in self.sacred_info:
