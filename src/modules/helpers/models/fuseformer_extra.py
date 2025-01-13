@@ -1,7 +1,7 @@
 from json import encoder
 import torch.nn as nn
 import torch
-
+import os
 from modules.helpers.embedding.twod_positional_embedding import TwoDPositionalEncoding
 from modules.helpers.embedding.positional_embedding import PositionalEncoding
 from modules.helpers.embedding.identity_embedding import IdentityEmbedding
@@ -19,7 +19,7 @@ class FouseformerExtra(nn.Module):
         self.entity_token_embedding = nn.Linear(input_dim, args.emb // 2)
 
         if not args.agent_positional_embedding:
-            self.position_embedding = nn.Linear(2, args.emb)
+            self.position_embedding = nn.Linear(2, args.emb // 2)
         else:
             if args.use_identity:
                 self.position_embedding = TwoDPositionalEncoding(args, args.emb // 4, args.max_len, args.device)
@@ -36,13 +36,24 @@ class FouseformerExtra(nn.Module):
 
         self.output_dim = output_dim
 
+        if args.save_attention_maps:
+            self.frame_idx = 0
+            self.save_attention_maps = True
+            self.save_path = args.save_attention_maps_path
+            self.save_path = os.path.join(self.save_path, args.map_name, args.mixer, args.agent)
+            os.makedirs(self.save_path, exist_ok=True)
+
     def forward(self, a, e, h, m, mask):
 
         agent_token = self.agent_token_embedding(a[:, :1, :])
         entity_token = self.entity_token_embedding(torch.cat((a[:, 1:, :], e), 1))
 
         pos_input = torch.cat((a, e), 1)
-        pos_emb = self.position_embedding(pos_input[:, :, 2:4], True)
+
+        if not self.args.agent_positional_embedding:
+            pos_emb = self.position_embedding(pos_input[:, :, 2:4])
+        else:
+            pos_emb = self.position_embedding(pos_input[:, :, 2:4], True)
 
         tokens = torch.cat((agent_token, entity_token), 1)
         b = tokens.size(0)
@@ -53,11 +64,12 @@ class FouseformerExtra(nn.Module):
         tokens = torch.cat((tokens, pos_emb), -1)
         encoder_tokens = torch.cat((tokens, h), 1)
 
-        encoder_tokens = self.encoder(encoder_tokens, mask)
+        encoder_tokens = self.encoder(encoder_tokens, mask, save_attention_maps=self.save_attention_maps, save_path=self.save_path, frame_idx=self.frame_idx)
         
         m = self.memory_encoder(m)
         m = m + self.memory_pos_emb
         m = self.decoder(m, encoder_tokens[:, :1, :])
+        self.frame_idx += 1
 
         return encoder_tokens[:, :1, :], m, encoder_tokens[:, -1:, :]
 

@@ -1,3 +1,4 @@
+import os
 from aifc import Error
 from modules.agents import REGISTRY as agent_REGISTRY, TRANSFORMERbasedAgent
 from components.action_selectors import REGISTRY as action_REGISTRY

@@ -3,7 +3,7 @@ import torch.nn as nn
 import torch
 from modules.helpers.models.fuseformer_extra import FouseformerExtra
 from modules.helpers.embedding.dummy_generator import DummyGenerator
-
+import os
 
 class FouseformerExtraAgent(nn.Module):
     def __init__(self, input_shape, args):
@@ -18,7 +18,7 @@ class FouseformerExtraAgent(nn.Module):
         if args.checkpoint_path == "":
             self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
         else:
-            self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.min_enemy_num)
+            self.basic_action_embedding = nn.Linear(args.emb, args.action_space_size + args.enemy_num)
 
     def init_hidden(self):
         # make hidden states on same device as model

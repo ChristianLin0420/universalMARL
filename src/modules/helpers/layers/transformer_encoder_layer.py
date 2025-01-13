@@ -20,8 +20,8 @@ class EncoderLayer(nn.Module):
         self.norm2 = nn.LayerNorm(emb)
         self.drop2 = nn.Dropout(dropout)
 
-    def forward(self, x, mask):
-        attended = self.attention(x, mask)
+    def forward(self, x, mask, save_attention_maps=False, save_path=None, layer_idx=None, frame_idx=None):
+        attended = self.attention(x, mask, save_attention_maps=save_attention_maps, save_path=save_path, layer_idx=layer_idx, frame_idx=frame_idx)
 
         x = self.norm1(attended + x)
         x = self.drop1(x)

@@ -5,8 +5,8 @@ train_count=1
 train_index=0
 agent='fuseformer_extra'
 mixers='qmix'
-maps='3m'
-gpu_id=1
+maps='3s_vs_5z'
+gpu_id=2
 
 ### 1c3s5z 2s3z 3m 8m 3s_vs_3z 
 ### 3s_vs_5z 3s5z 5m_vs_6m 

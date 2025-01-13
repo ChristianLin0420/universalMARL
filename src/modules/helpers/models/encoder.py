@@ -17,13 +17,11 @@ class Encoder(nn.Module):
                                                   dropout=drop_prob)
                                      for _ in range(args.depth)])
 
-    def forward(self, x, s_mask):
+    def forward(self, x, s_mask, save_attention_maps=False, save_path=None, frame_idx=None):
         p_emb = self.posit_emb(x)
         _x = x + p_emb
         
-        for layer in self.layers:
-            _x = layer(_x, s_mask)
-
-        # print("Encoder output dimension: {}".format(_x.size()))
+        for i, layer in enumerate(self.layers):
+            _x = layer(_x, s_mask, save_attention_maps=save_attention_maps, save_path=save_path, layer_idx=i, frame_idx=frame_idx)
 
         return _x
