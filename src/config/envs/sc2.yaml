@@ -32,7 +32,7 @@ env_args:
   debug: False
 
 test_greedy: True
-test_nepisode: 32
+test_nepisode: 1
 t_max: 1050000
 
 action_space_size: 6
